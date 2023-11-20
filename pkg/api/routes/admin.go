@@ -10,7 +10,8 @@ func AdminRoutes(engine *gin.RouterGroup,
 	adminHandler *adminHandler.AdminHandler,
 	categoryHandler *adminHandler.CategoryHandler,
 	servicerHandler *adminHandler.ServiceHandler,
-	regionHandler *adminHandler.RegionHandler) {
+	regionHandler *adminHandler.RegionHandler,
+	userMgmtHandler *adminHandler.UserMgmtHandler) {
 
 	engine.POST("/signup", adminHandler.AdminSignup)
 	engine.POST("/login", adminHandler.AdminLogin)

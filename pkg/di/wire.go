@@ -35,6 +35,10 @@ func InitializeAPI(cfg config.Config) (*httpserver.ServerHttp, error) {
 		adminUsecase.NewRegionUsecase,
 		adminRepo.NewRegionRepo,
 
+		adminHandler.NewUserMgmtHandler,
+		adminUsecase.NewUserMgmtUsecase,
+		adminRepo.NewUserMgmtRepo,
+
 		adminHandler.NewServiceHandler,
 		adminUsecase.NewServiceUsecase,
 		adminRepo.NewServiceRepo,
