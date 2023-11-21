@@ -102,3 +102,16 @@ func (mg *UserMgmtUsecase) UnBlockUser(ctx context.Context, id int) error {
 
 	return nil
 }
+
+func (mg *UserMgmtUsecase)	GetAllPendingVerifications(ctx context.Context) ([]models.Verification, error){
+	verification, err := mg.Repo.GetAllPendingVerifications(ctx)
+	if err != nil {
+		return []models.Verification{}, err
+	}
+	err = ctx.Err()
+	if err != nil {
+		return []models.Verification{}, errors.New("request timeout")
+	}
+
+	return verification, nil
+}

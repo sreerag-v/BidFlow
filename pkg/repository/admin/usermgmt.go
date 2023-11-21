@@ -132,3 +132,16 @@ func (mg *UserMgmtRepo) UnBlockUser(ctx context.Context, id int) error {
 	tx.Commit()
 	return nil
 }
+
+func (mg *UserMgmtRepo) GetAllPendingVerifications(ctx context.Context) ([]models.Verification, error) {
+	if ctx.Err() != nil {
+		return []models.Verification{}, errors.New("timeout")
+	}
+	var verifications []models.Verification
+	err := mg.Db.Raw("SELECT id,name FROM providers WHERE is_verified = false").Scan(&verifications).Error
+	if err != nil {
+		return []models.Verification{}, err
+	}
+
+	return verifications, nil
+}

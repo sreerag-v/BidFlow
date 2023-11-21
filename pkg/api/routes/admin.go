@@ -42,6 +42,20 @@ func AdminRoutes(engine *gin.RouterGroup,
 				district.DELETE("delete",regionHandler.DeleteDistrictFromState)
 			}
 		}
-	}
 
+		ProManagement:=engine.Group("/provider")
+		{
+			ProManagement.GET("/get-pro",userMgmtHandler.GetProviders)
+			ProManagement.PATCH("/verify-pro",userMgmtHandler.MakeProvidersVerified)
+			ProManagement.PATCH("/revoke-pro",userMgmtHandler.RevokeVerification)
+			ProManagement.GET("/get-pending-verification",userMgmtHandler.GetAllPendingVerifications)
+		}
+
+		UserManagement:=engine.Group("/user")
+		{
+			UserManagement.GET("/get-users",userMgmtHandler.GetUsers)
+			UserManagement.PATCH("/block-user",userMgmtHandler.BlockUser)
+			UserManagement.PATCH("/unblock-user",userMgmtHandler.UnBlockUser)
+		}
+	}
 }

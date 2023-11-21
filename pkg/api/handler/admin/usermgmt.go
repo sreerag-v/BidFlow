@@ -187,3 +187,20 @@ func (mg *UserMgmtHandler) UnBlockUser(c *gin.Context) {
 	successRes := response.SuccResponse{Data: "unblocked user", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
+
+func (mg *UserMgmtHandler) GetAllPendingVerifications(c *gin.Context) {
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	defer cancel()
+	//call usecase get array
+	verifications, err := mg.usecase.GetAllPendingVerifications(ctx)
+	if err != nil {
+		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	//give array
+	successRes := response.SuccResponse{Data: verifications, StatusCode: 200}
+	c.JSON(http.StatusOK, successRes)
+}
