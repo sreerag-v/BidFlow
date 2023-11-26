@@ -77,6 +77,22 @@ func (adm *CategoryRepo) ListCatgory(ctx context.Context, page models.PageNation
 	return categories, nil
 }
 
+func (adm *CategoryRepo) CheckCategoryById(ctx context.Context,id int)(bool,error){
+	if ctx.Err() != nil {
+		return false, errors.New("timeout")
+	}
+	var count int64
+	if err := adm.DB.Table("categories").Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return false, nil
+	}
+	// If count is greater than 0, it means a record with the given name exists
+	return true, nil
+}
+
 func (adm *CategoryRepo) DeleteCategory(ctx context.Context, id int) error {
 	tx := adm.DB.Begin()
 	err := tx.Exec("UPDATE categories SET is_deleted = TRUE WHERE id = $1", id).Error

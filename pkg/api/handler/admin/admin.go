@@ -4,9 +4,10 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
-
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/usecase/admin/interfaces"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
@@ -25,21 +26,50 @@ func NewAdminHandler(usecase interfaces.AdminUsecase) *AdminHandler {
 
 func (adm *AdminHandler) AdminSignup(c *gin.Context) {
 	var Body domain.Admin
-
 	if err := c.Bind(&Body); err != nil {
 		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
 
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+	// validate the struct
+	validate := validator.New()
+	if err := validate.Struct(Body); err != nil {
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	// Using a WaitGroup to wait for goroutine to finish
+	var wg sync.WaitGroup
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	err := adm.usecase.AdminSignup(ctx, Body)
+	// Use a channel to signal the completion of the goroutines
+	errCh := make(chan error, 1)
 
-	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		errCh <- adm.usecase.AdminSignup(ctx, Body)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	select {
+	case err := <-errCh:
+		if err != nil {
+			res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+			c.JSON(http.StatusInternalServerError, res)
+			return
+		}
+	case <-ctx.Done():
+		// If the context times out, respond with an appropriate error
+		res := response.ErrResponse{Data: nil, Error: "Request timed out", StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}

@@ -47,6 +47,13 @@ func (usr *UserUsecase) SignUp(Body models.UserSignup) error {
 }
 
 func (usr *UserUsecase) Login(Body models.Login) (string, error) {
+	block,err:=usr.UserRepo.CheckUserBlockedOrNot(Body.Username)
+	if err!=nil{
+		return "",err
+	}
+	if block.IsBlocked {
+		return "",errors.New("User Blocked by the Admin")
+	}
 	exists, err := usr.UserRepo.CheckUsername(Body.Username)
 	if err != nil {
 		return "", err

@@ -3,6 +3,7 @@ package adminUsecase
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	helper "github.com/sreerag_v/BidFlow/pkg/helper/interfaces"
@@ -28,30 +29,57 @@ func (adm *adminUsecase) AdminSignup(ctx context.Context, body domain.Admin) err
 		return errors.New("Resuest time Out")
 	}
 
-	// chekc the admin exist or not
-	exist, err := adm.repository.FindAdminByEmail(ctx, body.Email)
+	// Use a WaitGroup to wait for goroutines to finish
+	var wg sync.WaitGroup
 
-	if err != nil {
-		return err
+	errCh := make(chan error, 2)
+	wg.Add(1)
+
+	// first go routine for finding the user exist or not 
+	go func() {
+		defer wg.Done()
+		exist, err := adm.repository.FindAdminByEmail(ctx, body.Email)
+		if err != nil {
+			errCh <- err
+			return
+		}
+		// check the user exist or not
+		if exist != 0 {
+			errCh <- errors.New("admin email  already exists")
+		}
+	}()
+
+	// second go routine for hashing the password
+	wg.Add(1)
+	go func(){
+		defer wg.Done()
+		hash, err := adm.helper.CreateHashPassword(body.Password)
+		if err != nil {
+			errCh<- err
+			return
+		}
+		body.Password = hash
+	}()
+
+	// Wait for both goroutines to finish
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+
+	// Check for errors from the goroutines
+	for err := range errCh {
+		if err != nil {
+			return err
+		}
 	}
-
-	if exist != 0 {
-		return errors.New("admin email  already exists")
-	}
-
-	// hash the password
-	hash, err := adm.helper.CreateHashPassword(body.Password)
-
-	if err != nil {
-		return err
-	}
-
+	
 	// give the previlage of admin
-	body.Password = hash
 	body.Previlege = "admin"
 
+	
 	// create new admin
-
 	if err := adm.repository.AdminSignup(ctx, body); err != nil {
 		return err
 	}
@@ -93,7 +121,7 @@ func (adm *adminUsecase) AdminLogin(ctx context.Context, Body models.AdminLogin)
 	return token, nil
 }
 
-func (adm *adminUsecase) DeleteAdmin(ctx context.Context,id int)error{
+func (adm *adminUsecase) DeleteAdmin(ctx context.Context, id int) error {
 	err := adm.repository.DeleteAdmin(ctx, id)
 	if err != nil || ctx.Err() != nil {
 		return err

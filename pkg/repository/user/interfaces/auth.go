@@ -12,4 +12,5 @@ type UserRepo interface{
 	CheckUsername(string)(bool,error)
 	GetUserDetails(string)(domain.User,error)
 	GetUserDetailsById(uint)(domain.User,error)
+	CheckUserBlockedOrNot(string)(domain.User,error)
 }

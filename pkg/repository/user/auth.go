@@ -55,6 +55,16 @@ func (usr *UserRepo) GetUserDetails(name string) (domain.User, error) {
 	return model, nil
 }
 
+func(usr *UserRepo)	CheckUserBlockedOrNot(name string)(domain.User,error){
+	var model domain.User
+	if err := usr.DB.Table("users").Where("name = ?", name).Scan(&model).Error; err != nil {
+		return domain.User{}, err
+	}
+
+	return model, nil
+}
+
+
 func (usr *UserRepo) GetUserDetailsById(id uint) (domain.User, error) {
 	var model domain.User
 	if err := usr.DB.Table("users").Where("id = ?", id).Scan(&model).Error; err != nil {

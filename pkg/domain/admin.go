@@ -3,7 +3,7 @@ package domain
 type Admin struct {
 	ID        uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name      string `json:"name" gorm:"validate:required"`
-	Email     string `json:"email" gorm:"validate:required"`
+	Email     string `json:"email" gorm:"validate:required,email" validate:"email"`
 	Password  string `json:"password" gorm:"validate:required"`
 	Previlege string `json:"previlege" gorm:"previlege:2;default:'normal_admin';previlage IN ('super_admin','normal_admin')"`
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
 	"github.com/jinzhu/copier"
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/twilio"
@@ -32,6 +33,13 @@ func (usr *UserHandler) SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+	validate := validator.New()
+	if err := validate.Struct(Body); err != nil {
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 
 	if err := usr.Usecase.SignUp(Body); err != nil {
 		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}

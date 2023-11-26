@@ -60,7 +60,14 @@ func (adm *CategoryUsecase) ListCatgory(ctx context.Context,page models.PageNati
 }
 
 func (adm *CategoryUsecase)	DeleteCategory(ctx context.Context, id int)error{
-	err:=adm.Repo.DeleteCategory(ctx,id)
+	exist,err:=adm.Repo.CheckCategoryById(ctx,id)
+	if exist {
+		return errors.New("category id not exists")
+	}
+	if err!=nil{
+		return err
+	}
+	err=adm.Repo.DeleteCategory(ctx,id)
 	if err != nil {
 		return err
 	}

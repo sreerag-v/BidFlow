@@ -17,4 +17,5 @@ type Helper interface {
 	GenerateTokenUser(details domain.User) (string, error)
 
 	StringToUInt(str string) (uint, error)
+
 }
