@@ -5,7 +5,7 @@ import "time"
 type Provider struct {
 	ID         int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name       string `json:"name" gorm:"not null"`
-	Email      string `json:"email" gorm:"not null"`
+	Email      string `json:"email" gorm:"not null" validate:"required,email"`
 	Password   string `json:"password" gorm:"not null"`
 	Phone      string `json:"phone" gorm:"not null"`
 	IsVerified bool   `json:"verified" gorm:"default:false"`

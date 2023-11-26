@@ -3,6 +3,7 @@ package proiderHandler
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sreerag_v/BidFlow/pkg/usecase/provider/interfaces"
@@ -20,6 +21,7 @@ func NewProviderHandler(usecase interfaces.ProviderUsecase)*ProviderHandler{
 	}
 }
 
+
 func (pro *ProviderHandler) Register(c *gin.Context){
 	name:=c.Request.FormValue("name")
 	email:=c.Request.FormValue("email")
@@ -31,6 +33,12 @@ func (pro *ProviderHandler) Register(c *gin.Context){
 	if err!=nil{
 		res:=response.ErrResponse{Data: nil,Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest,res)
+		return
+	}
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(email) {
+		res := response.ErrResponse{Data: nil, Error: "Invalid email format", StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
