@@ -5,23 +5,23 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/repository/admin/interfaces"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
 	"gorm.io/gorm"
 )
 
-type UserMgmtRepo struct{
+type UserMgmtRepo struct {
 	Db *gorm.DB
 }
 
-func NewUserMgmtRepo (DB *gorm.DB)interfaces.UserMgmtRepo{
+func NewUserMgmtRepo(DB *gorm.DB) interfaces.UserMgmtRepo {
 	return &UserMgmtRepo{
 		Db: DB,
 	}
 }
 
-
-func (mg *UserMgmtRepo)	GetProviders(ctx context.Context,page models.PageNation) ([]models.ProviderDetails, error){
+func (mg *UserMgmtRepo) GetProviders(ctx context.Context, page models.PageNation) ([]models.ProviderDetails, error) {
 	if ctx.Err() != nil {
 		return []models.ProviderDetails{}, errors.New("timeout")
 	}
@@ -45,7 +45,7 @@ func (mg *UserMgmtRepo)	GetProviders(ctx context.Context,page models.PageNation)
 	return provider, nil
 }
 
-func (mg *UserMgmtRepo)	MakeProviderVerified(ctx context.Context, id int) error{
+func (mg *UserMgmtRepo) MakeProviderVerified(ctx context.Context, id int) error {
 	tx := mg.Db.Begin()
 	err := tx.Exec("UPDATE providers SET is_verified = true WHERE id = $1", id).Error
 	if err != nil {
@@ -77,7 +77,7 @@ func (mg *UserMgmtRepo) RevokeVerification(ctx context.Context, id int) error {
 	return nil
 }
 
-func (mg UserMgmtRepo)	GetUsers(ctx context.Context,page models.PageNation) ([]models.UserDetails, error){
+func (mg UserMgmtRepo) GetUsers(ctx context.Context, page models.PageNation) ([]models.UserDetails, error) {
 	if ctx.Err() != nil {
 		return []models.UserDetails{}, errors.New("timeout")
 	}
@@ -87,7 +87,7 @@ func (mg UserMgmtRepo)	GetUsers(ctx context.Context,page models.PageNation) ([]m
 
 	var user []models.UserDetails
 	err := mg.Db.
-		Table("providers").
+		Table("users").
 		Order("id asc").
 		Limit(int(limit)).
 		Offset(int(offset)).
@@ -100,8 +100,17 @@ func (mg UserMgmtRepo)	GetUsers(ctx context.Context,page models.PageNation) ([]m
 
 	return user, nil
 }
+func (mg *UserMgmtRepo) CheckUserExistOrNot(ctx context.Context, id int) (domain.User, error) {
+	var body domain.User
+	err := mg.Db.Table("users").Where("id = ?", id).Scan(&body).Error
+	if err != nil {
+		return body, err
+	}
 
-func (mg *UserMgmtRepo)	BlockUser(ctx context.Context, id int) error{
+	return body, nil
+}
+
+func (mg *UserMgmtRepo) BlockUser(ctx context.Context, id int) error {
 	tx := mg.Db.Begin()
 	err := tx.Exec("UPDATE users SET is_blocked = true WHERE id = $1", id).Error
 	if err != nil {
@@ -133,12 +142,24 @@ func (mg *UserMgmtRepo) UnBlockUser(ctx context.Context, id int) error {
 	return nil
 }
 
-func (mg *UserMgmtRepo) GetAllPendingVerifications(ctx context.Context) ([]models.Verification, error) {
+func (mg *UserMgmtRepo) GetAllPendingVerifications(ctx context.Context, page models.PageNation) ([]models.Verification, error) {
 	if ctx.Err() != nil {
 		return []models.Verification{}, errors.New("timeout")
 	}
+
+	limit := page.Count
+	offset := (page.PageNumber - 1) * limit
+
+	// Select specific columns and filter the results
 	var verifications []models.Verification
-	err := mg.Db.Raw("SELECT id,name FROM providers WHERE is_verified = false").Scan(&verifications).Error
+	err := mg.Db.Table("providers").
+		Order("id asc").
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Select("id, name").
+		Where("is_verified = ?", false).
+		Scan(&verifications).Error
+
 	if err != nil {
 		return []models.Verification{}, err
 	}

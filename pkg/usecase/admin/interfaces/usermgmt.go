@@ -15,6 +15,6 @@ type UserMgmtUsecase interface{
 	BlockUser(ctx context.Context, id int) error
 	UnBlockUser(ctx context.Context, id int) error
 
-	GetAllPendingVerifications(context.Context) ([]models.Verification, error)
+	GetAllPendingVerifications(context.Context,models.PageNation) ([]models.Verification, error)
 
 }

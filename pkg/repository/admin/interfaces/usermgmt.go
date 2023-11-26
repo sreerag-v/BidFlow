@@ -3,6 +3,7 @@ package interfaces
 import (
 	"context"
 
+	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
 )
 
@@ -15,6 +16,6 @@ type UserMgmtRepo interface{
 	BlockUser(ctx context.Context, id int) error
 	UnBlockUser(ctx context.Context, id int) error
 
-	GetAllPendingVerifications(context.Context) ([]models.Verification, error)
-
+	GetAllPendingVerifications(context.Context,models.PageNation) ([]models.Verification, error)
+	CheckUserExistOrNot(context.Context,int)(domain.User,error)
 }
