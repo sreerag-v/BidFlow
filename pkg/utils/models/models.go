@@ -49,7 +49,7 @@ type Verification struct {
 
 type ProviderRegister struct {
 	Name       string                `json:"name"`
-	Email      string                `json:"email"`
+	Email      string                `json:"email "`
 	Password   string                `json:"password"`
 	RePassword string                `json:"re-password"`
 	Phone      string                `json:"phone+6+"`
@@ -158,12 +158,13 @@ type PlaceBid struct {
 }
 
 type UserSignup struct {
-	Name            string `json:"name"`
-	Email           string `json:"email" validate:"email"`
-	Phone           string `json:"phone"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmpassword"`
+    Name            string `json:"name" validate:"required"`
+    Email           string `json:"email" validate:"required,email"`
+    Phone           string `json:"phone" validate:"required"`
+    Password        string `json:"password" validate:"required,min=6"`
+    ConfirmPassword string `json:"confirmpassword" validate:"required,eqfield=Password"`
 }
+
 
 type ProviderDetailsForUser struct {
 	ID            int    `json:"id"`

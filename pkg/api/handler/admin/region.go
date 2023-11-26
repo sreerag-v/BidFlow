@@ -164,7 +164,6 @@ func (reg *RegionHandler) DeleteDistrictFromState(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	//call usecase get array
 	err = reg.usecase.DeleteDistrictFromState(ctx, id)
 	if err != nil {
 		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}

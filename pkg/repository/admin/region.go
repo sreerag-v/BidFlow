@@ -93,6 +93,21 @@ func (reg RegionRepo)	DeleteState(ctx context.Context,id int) error{
 	tx.Commit()
 	return nil
 }
+func (reg *RegionRepo)	CheckStateExistsByid(ctx context.Context,id int)(bool,error){
+	if ctx.Err() != nil {
+		return false, errors.New("timeout")
+	}
+	var count int64
+	if err := reg.DB.Table("states").Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return false, nil
+	}
+	// If count is greater than 0, it means a record with the given name exists
+	return true, nil
+}
 
 func (reg *RegionRepo)	CheckIfDistrictAlreadyExists(ctx context.Context, dis string) (bool, error){
 	if ctx.Err() != nil {
@@ -154,4 +169,20 @@ func (reg *RegionRepo) DeleteDistrictFromState(ctx context.Context, id int) erro
 	}
 	tx.Commit()
 	return nil
+}
+
+func (reg *RegionRepo)	CheckIfDistrictExistByid(ctx context.Context,id int)(bool,error){
+	if ctx.Err() != nil {
+		return false, errors.New("timeout")
+	}
+	var count int64
+	if err := reg.DB.Table("districts").Where("id = ?", id).Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return false, nil
+	}
+	// If count is greater than 0, it means a record with the given name exists
+	return true, nil
 }
