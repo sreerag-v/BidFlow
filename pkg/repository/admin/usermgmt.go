@@ -109,6 +109,16 @@ func (mg *UserMgmtRepo) CheckUserExistOrNot(ctx context.Context, id int) (domain
 
 	return body, nil
 }
+func (mg *UserMgmtRepo)	CheckProviderExistOrNot(ctx context.Context, id int)(domain.Provider,error){
+	var body domain.Provider
+	err := mg.Db.Table("providers").Where("id = ?", id).Scan(&body).Error
+	if err != nil {
+		return body, err
+	}
+
+	return body, nil
+}
+
 
 func (mg *UserMgmtRepo) BlockUser(ctx context.Context, id int) error {
 	tx := mg.Db.Begin()

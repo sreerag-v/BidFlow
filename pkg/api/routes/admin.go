@@ -57,5 +57,14 @@ func AdminRoutes(engine *gin.RouterGroup,
 			UserManagement.PATCH("/block-user",userMgmtHandler.BlockUser)
 			UserManagement.PATCH("/unblock-user",userMgmtHandler.UnBlockUser)
 		}
+
+		Service:=engine.Group("services")
+		{
+			Service.POST("/create",servicerHandler.AddServiceToCategory)
+			Service.GET("/list",servicerHandler.GetServicesInACategory)
+			Service.DELETE("/delete",servicerHandler.DeleteService)
+			Service.PATCH("/reactivate",servicerHandler.ReActivateService)
+
+		}
 	}
 }

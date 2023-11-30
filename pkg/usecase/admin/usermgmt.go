@@ -36,7 +36,16 @@ func (mg *UserMgmtUsecase) GetProviders(ctx context.Context, page models.PageNat
 }
 
 func (mg *UserMgmtUsecase) MakeProviderVerified(ctx context.Context, id int) error {
-	err := mg.Repo.MakeProviderVerified(ctx, id)
+	exist, err := mg.Repo.CheckProviderExistOrNot(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("provider does not exist in this id")
+	}
+
+	err = mg.Repo.MakeProviderVerified(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -49,7 +58,15 @@ func (mg *UserMgmtUsecase) MakeProviderVerified(ctx context.Context, id int) err
 }
 
 func (mg *UserMgmtUsecase) RevokeVerification(ctx context.Context, id int) error {
-	err := mg.Repo.RevokeVerification(ctx, id)
+	exist, err := mg.Repo.CheckProviderExistOrNot(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("provider does not exist in this id")
+	}
+	err = mg.Repo.RevokeVerification(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -119,8 +136,8 @@ func (mg *UserMgmtUsecase) UnBlockUser(ctx context.Context, id int) error {
 	return nil
 }
 
-func (mg *UserMgmtUsecase) GetAllPendingVerifications(ctx context.Context,page models.PageNation) ([]models.Verification, error) {
-	verification, err := mg.Repo.GetAllPendingVerifications(ctx,page)
+func (mg *UserMgmtUsecase) GetAllPendingVerifications(ctx context.Context, page models.PageNation) ([]models.Verification, error) {
+	verification, err := mg.Repo.GetAllPendingVerifications(ctx, page)
 	if err != nil {
 		return []models.Verification{}, err
 	}

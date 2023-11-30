@@ -40,7 +40,6 @@ func (usr *UserHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-
 	if err := usr.Usecase.SignUp(Body); err != nil {
 		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusInternalServerError, res)
@@ -73,7 +72,6 @@ func (usr *UserHandler) Login(c *gin.Context) {
 }
 
 // Twilio Otp Login
-
 func (usr *UserHandler) OtpLogin(c *gin.Context) {
 	var body models.OTPLoginStruct
 

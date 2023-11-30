@@ -86,6 +86,13 @@ func (adm *AdminHandler) AdminLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+	validate := validator.New()
+	if err := validate.Struct(Body); err != nil {
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 
 	ctx, cance := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cance()
