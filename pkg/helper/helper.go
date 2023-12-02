@@ -107,7 +107,7 @@ func (helper *helper) GenerateTokenProvider(details domain.Provider) (string, er
 	accessTokenClaims := &models.AuthCustomClaims{
 		Id:    details.ID,
 		Email: details.Email,
-		Role:  "Provider",
+		Role:  "provider",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24 * 90).Unix(),
 			IssuedAt:  time.Now().Unix(),

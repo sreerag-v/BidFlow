@@ -1,4 +1,3 @@
-
 //go:build wireinject
 // +build wireinject
 package di
@@ -49,6 +48,12 @@ func InitializeAPI(cfg config.Config) (*httpserver.ServerHttp, error) {
 		provoderRepo.NewProviderRepo,
 		provoderUsecase.NewProviderUsecase,
 		provoderHandler.NewProviderHandler,
+
+		provoderRepo.NewProfileRepo,
+		provoderUsecase.NewProfileUsecase,
+		provoderHandler.NewProfileHandler,
+
+		
 
 		userRepo.NewUserRepo,
 		userUsecase.NewUserUsecase,

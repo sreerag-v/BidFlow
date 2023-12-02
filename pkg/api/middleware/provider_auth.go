@@ -53,7 +53,8 @@ func ProviderAuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	c.Set("id", id)
+	userid := int(id)
+	c.Set("Uid", userid)
 
-	c.Next()
+	// c.Next()
 }

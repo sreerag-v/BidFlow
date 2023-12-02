@@ -12,31 +12,31 @@ import (
 	"github.com/sreerag_v/BidFlow/pkg/utils/response"
 )
 
-type ServiceHandler struct{
+type ServiceHandler struct {
 	Usecase interfaces.ServiceUsecase
 }
 
-func NewServiceHandler(Usecase interfaces.ServiceUsecase)*ServiceHandler{
+func NewServiceHandler(Usecase interfaces.ServiceUsecase) *ServiceHandler {
 	return &ServiceHandler{
 		Usecase: Usecase,
 	}
 }
 
-func (sr *ServiceHandler) AddServiceToCategory(c *gin.Context){
+func (sr *ServiceHandler) AddServiceToCategory(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
 	var service models.AddServicesToACategory
-	err := c.BindJSON(&service)
+	err := c.Bind(&service)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
 	err = sr.Usecase.AddServicesToACategory(ctx, service)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -52,7 +52,7 @@ func (sr *ServiceHandler) GetServicesInACategory(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("category_id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -60,7 +60,7 @@ func (sr *ServiceHandler) GetServicesInACategory(c *gin.Context) {
 	//call usecase gest array
 	services, err := sr.Usecase.GetServicesInACategory(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -77,14 +77,14 @@ func (sr *ServiceHandler) DeleteService(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("service_id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	//call usecase get array
 	err = sr.Usecase.DeleteService(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}

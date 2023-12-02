@@ -20,6 +20,7 @@ func NewServerHttp(adminHandler *adminHandler.AdminHandler,
 	servicerHandler *adminHandler.ServiceHandler,
 	regionHandler *adminHandler.RegionHandler,
 	userMgmtHAndler *adminHandler.UserMgmtHandler,
+	profileHandler *providerHandler.ProfileHandler,
 
 	providerHanlder *providerHandler.ProviderHandler,
 	userHandler *userHandler.UserHandler) *ServerHttp {
@@ -28,7 +29,7 @@ func NewServerHttp(adminHandler *adminHandler.AdminHandler,
 	engine.Use(gin.Logger())
 
 	routes.AdminRoutes(engine.Group("/admin"), adminHandler,categoryHandler,servicerHandler,regionHandler,userMgmtHAndler)
-	routes.ProviderRoutes(engine.Group("/provider"), providerHanlder)
+	routes.ProviderRoutes(engine.Group("/provider"), providerHanlder,profileHandler)
 	routes.UserRoutes(engine.Group("/user"), userHandler)
 
 	return &ServerHttp{engine: engine}

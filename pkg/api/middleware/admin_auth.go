@@ -10,7 +10,7 @@ import (
 
 var InvalidAuthorizationToken = "Invalid Authorization Token"
 var MissingAuthorizationToken = "Missing Authorization Token"
-var UnAuthorizedAccess = "Unauthorized Access"
+var UnAuthorizedAccess = "Unauthorized Access III"
 var TokenProblem = "Some Problem in Token"
 
 func AdminAuthMiddleware(c *gin.Context) {
