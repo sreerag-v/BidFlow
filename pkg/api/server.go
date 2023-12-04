@@ -23,14 +23,15 @@ func NewServerHttp(adminHandler *adminHandler.AdminHandler,
 	profileHandler *providerHandler.ProfileHandler,
 
 	providerHanlder *providerHandler.ProviderHandler,
-	userHandler *userHandler.UserHandler) *ServerHttp {
+	userHandler *userHandler.UserHandler,
+	userworkhandler *userHandler.WorkHandler) *ServerHttp {
 	engine := gin.New()
 
 	engine.Use(gin.Logger())
 
-	routes.AdminRoutes(engine.Group("/admin"), adminHandler,categoryHandler,servicerHandler,regionHandler,userMgmtHAndler)
-	routes.ProviderRoutes(engine.Group("/provider"), providerHanlder,profileHandler)
-	routes.UserRoutes(engine.Group("/user"), userHandler)
+	routes.AdminRoutes(engine.Group("/admin"), adminHandler, categoryHandler, servicerHandler, regionHandler, userMgmtHAndler)
+	routes.ProviderRoutes(engine.Group("/provider"), providerHanlder, profileHandler)
+	routes.UserRoutes(engine.Group("/user"), userHandler, userworkhandler)
 
 	return &ServerHttp{engine: engine}
 }

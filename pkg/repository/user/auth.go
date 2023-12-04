@@ -1,6 +1,10 @@
 package userRepo
 
 import (
+	"context"
+	"errors"
+	"fmt"
+
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/repository/user/interfaces"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
@@ -55,7 +59,7 @@ func (usr *UserRepo) GetUserDetails(name string) (domain.User, error) {
 	return model, nil
 }
 
-func(usr *UserRepo)	CheckUserBlockedOrNot(name string)(domain.User,error){
+func (usr *UserRepo) CheckUserBlockedOrNot(name string) (domain.User, error) {
 	var model domain.User
 	if err := usr.DB.Table("users").Where("name = ?", name).Scan(&model).Error; err != nil {
 		return domain.User{}, err
@@ -64,7 +68,6 @@ func(usr *UserRepo)	CheckUserBlockedOrNot(name string)(domain.User,error){
 	return model, nil
 }
 
-
 func (usr *UserRepo) GetUserDetailsById(id uint) (domain.User, error) {
 	var model domain.User
 	if err := usr.DB.Table("users").Where("id = ?", id).Scan(&model).Error; err != nil {
@@ -72,4 +75,65 @@ func (usr *UserRepo) GetUserDetailsById(id uint) (domain.User, error) {
 	}
 
 	return model, nil
+}
+
+func (usr *UserRepo) UserProfile(ctx context.Context, id int) ([]models.UserDetails, error) {
+	if ctx.Err() != nil {
+		return []models.UserDetails{}, errors.New("timeout")
+	}
+
+	var user []models.UserDetails
+	err := usr.DB.
+		Table("users").Where("id = ?", id).Scan(&user).
+		Error
+
+	if err != nil {
+		return []models.UserDetails{}, fmt.Errorf("Something error")
+	}
+
+	return user, nil
+}
+
+func (usr *UserRepo) UpdateProfile(id int, body models.UpdateUser) error {
+	err := usr.DB.Table("users").
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"name":  body.Name,
+			"email": body.Email,
+			"phone": body.Phone,
+		}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usr *UserRepo) FindUserByEmail(email string) (domain.User, error) {
+	var body domain.User
+	err := usr.DB.Table("users").Where("email = ?", email).Scan(&body).Error
+	if err != nil {
+		return body, err
+	}
+
+	return body, nil
+}
+
+func (usr *UserRepo) ForgottPassword(body models.Forgott, otp string) error {
+	err := usr.DB.Table("users").Where("email = ?", body.Email).Update("otp", otp).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usr *UserRepo) ChangePassword(body models.ChangePassword) error {
+	err := usr.DB.Table("users").Where("email = ?", body.Email).Update("password", body.Password).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/jinzhu/copier"
 	"github.com/sreerag_v/BidFlow/pkg/domain"
+	"github.com/sreerag_v/BidFlow/pkg/smtp"
 	"github.com/sreerag_v/BidFlow/pkg/twilio"
 	"github.com/sreerag_v/BidFlow/pkg/usecase/user/interfaces"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
@@ -150,4 +151,77 @@ func (usr *UserHandler) LoginOtpVerify(c *gin.Context) {
 	res := response.SuccResponse{Data: token, StatusCode: 201}
 	c.JSON(http.StatusCreated, res)
 
+}
+
+func (usr *UserHandler) UserProfile(c *gin.Context) {
+	userid := c.GetInt("id")
+
+	user, err := usr.Usecase.UserProfile(c, userid)
+	if err != nil {
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := response.SuccResponse{Data: user, StatusCode: 200}
+	c.JSON(http.StatusCreated, res)
+}
+
+func (usr *UserHandler) UpdateProfile(c *gin.Context){
+	var body models.UpdateUser
+
+	if err:=c.Bind(&body);err!=nil{
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	Uid:=c.GetInt("id")
+
+	err:=usr.Usecase.UpdateProfile(Uid,body)
+	if err != nil {
+		res := response.ErrResponse{Data: "error while updatating profile", Error: err.Error(), StatusCode: 500}
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := response.SuccResponse{Data: "Profile Updated SucessFull", StatusCode: 200}
+	c.JSON(http.StatusCreated, res)
+}
+
+func (usr *UserHandler) ForgottPassword(c *gin.Context){
+	var body models.Forgott
+
+	if err:=c.Bind(&body);err!=nil{
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+	otp:=smtp.VerifyOTP(body.Email)
+	err:=usr.Usecase.ForgottPassword(body,otp)
+	if err != nil {
+		res := response.ErrResponse{Data: "error while forgetting password", Error: err.Error(), StatusCode: 500}
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := response.SuccResponse{Data: "Otp Sent Successfull Check on Gmail", StatusCode: 200}
+	c.JSON(http.StatusCreated, res)
+}
+
+func (usr *UserHandler) ChangePassword(c *gin.Context){
+	var body models.ChangePassword
+
+	if err:=c.Bind(&body);err!=nil{
+		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	err:=usr.Usecase.ChangePassword(body)
+	if err != nil {
+		res := response.ErrResponse{Data: "error while changin password", Error: err.Error(), StatusCode: 500}
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := response.SuccResponse{Data: "Password Change Successfull", StatusCode: 200}
+	c.JSON(http.StatusCreated, res)
 }

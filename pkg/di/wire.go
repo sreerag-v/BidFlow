@@ -1,5 +1,6 @@
 //go:build wireinject
 // +build wireinject
+
 package di
 
 import (
@@ -53,12 +54,13 @@ func InitializeAPI(cfg config.Config) (*httpserver.ServerHttp, error) {
 		provoderUsecase.NewProfileUsecase,
 		provoderHandler.NewProfileHandler,
 
-		
-
 		userRepo.NewUserRepo,
 		userUsecase.NewUserUsecase,
 		userHandler.NewUserHandler,
-	
+
+		userRepo.NewWorkRepo,
+		userUsecase.NewWorkUsecase,
+		userHandler.NewWorkHandler,
 	)
 
 	return &httpserver.ServerHttp{}, nil

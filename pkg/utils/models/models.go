@@ -177,3 +177,20 @@ type RatingModel struct {
 	Rating   int    `json:"rating"`
 	Feedback string `json:"feedback"`
 }
+
+type UpdateUser struct {
+	Name  string `json:"name" gorm:"not null"`
+	Email string `json:"email" gorm:"not null"`
+	Phone string `json:"phone" gorm:"unique;not null"`
+}
+
+type Forgott struct {
+	Email string `json:"email" gorm:"not null"`
+}
+
+type ChangePassword struct{
+	Email           string
+	Otp             string
+	Password        string
+	ConfirmPassword string
+}

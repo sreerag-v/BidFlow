@@ -54,8 +54,8 @@ func UserAuthMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	uid := int(id)
+	c.Set("id", uid)
 
-	c.Set("id", id)
-
-	c.Next()
+	// c.Next()
 }

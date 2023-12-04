@@ -1,6 +1,7 @@
 package userUsecase
 
 import (
+	"context"
 	"errors"
 
 	"github.com/sreerag_v/BidFlow/pkg/domain"
@@ -121,4 +122,76 @@ func (usr *UserUsecase) GetJwtToken(body domain.User) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (usr *UserUsecase)	UserProfile(ctx context.Context, id int)([]models.UserDetails,error){
+	users, err := usr.UserRepo.UserProfile(ctx, id)
+	if err != nil {
+		return []models.UserDetails{}, err
+	}
+	err = ctx.Err()
+	if err != nil {
+		return []models.UserDetails{}, errors.New("request timeout")
+	}
+
+	return users, nil
+}
+
+func (usr *UserUsecase)	UpdateProfile(uid int,body models.UpdateUser)error{
+	exist,err:=usr.UserRepo.GetUserDetailsById(uint(uid))
+	if err != nil {
+		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("something wrong cant find claim id")
+	}
+
+	err=usr.UserRepo.UpdateProfile(uid,body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usr *UserUsecase)	ForgottPassword(body models.Forgott,otp string)error{
+	exist,err:=usr.UserRepo.FindUserByEmail(body.Email)
+	if err != nil {
+		return err
+	}
+	if exist.Email == "" {
+		return errors.New("email does not exist")
+	}
+
+	return usr.UserRepo.ForgottPassword(body,otp)
+}
+
+func (usr *UserUsecase)	ChangePassword(body models.ChangePassword)error{
+	exist,err:=usr.UserRepo.FindUserByEmail(body.Email)
+	if err != nil {
+		return err
+	}
+	if exist.Email == "" {
+		return errors.New("user not found")
+	}
+	if body.Password != body.ConfirmPassword {
+		return errors.New("password not match")
+	}
+
+	if body.Otp != exist.Otp {
+		return errors.New("invalid otp")
+	}
+	hashed, err := usr.helper.CreateHashPassword(body.Password)
+	if err != nil {
+		return err
+	}
+
+	body.Password = hashed
+
+	err=usr.UserRepo.ChangePassword(body)
+	if err!=nil{
+		return err
+	}
+	return nil
 }

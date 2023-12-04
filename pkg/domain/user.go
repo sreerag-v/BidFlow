@@ -9,6 +9,7 @@ type User struct {
 	Phone     string `json:"phone" gorm:"unique;not null"`
 	Password  string `json:"password" gorm:"not null"`
 	IsBlocked bool   `json:"is_blocked" gorm:"Default:false"`
+	Otp       string `json:"otp"`
 }
 
 type UserNotification struct {

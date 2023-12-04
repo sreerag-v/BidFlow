@@ -23,7 +23,10 @@ type Twilio struct {
 	AccountSid string `mapstructure:"AccountSid"`
 	ServiceSid string `mapstructure:"ServiceSid"`
 }
-
+type Smtp struct {
+	Email    string `mapstructure:"Email"`
+	Password string `mapstructure:"Password"`
+}
 var envs = []string{
 	"DB_HOST",
 	"DB_NAME",
@@ -35,9 +38,11 @@ var envs = []string{
 	"AWS_SECRET_ACCESS_KEY",
 
 	"authtoken", "accountsid", "servicesid", // twilio
+	"Email", "Password", //smtp
 
 }
 var twilio Twilio
+var smtp Smtp 
 
 func LoadConfig()(Config,error){
 	var config Config
@@ -67,10 +72,16 @@ func LoadConfig()(Config,error){
 	if err := viper.Unmarshal(&twilio); err != nil {
 		return config, err
 	}
+	if err := viper.Unmarshal(&smtp); err != nil {
+		return config, err
+	}
 
 	return config, nil
 }
 
 func GetTilio() Twilio {
 	return twilio
+}
+func GetSmtp() Smtp {
+	return smtp
 }
