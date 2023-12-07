@@ -24,5 +24,16 @@ func UserRoutes(engine *gin.RouterGroup,
 			profile.POST("sent-otp",userHandler.ForgottPassword)
 			profile.POST("change-password",userHandler.ChangePassword)
 		}
+
+		works:=engine.Group("/works")
+		{
+			works.POST("/add",workHandler.ListNewOpening)
+			works.GET("/list",workHandler.GetAllListedWorks)
+			works.POST("/image",workHandler.AddImageOfWork)
+
+			works.GET("/on-going",workHandler.ListAllOngoingWorks)
+			works.GET("/finished",workHandler.ListAllCompletedWorks)
+			works.GET("/work-byid/:id",workHandler.WorkDetailsById)
+		}
 	}
 }

@@ -16,6 +16,14 @@ type Work struct {
 	WorkStatus         string     `json:"work_status" gorm:"column:work_status;default:'listed';check:work_status IN ('listed','committed','completed')"`
 }
 
+type ReqWork struct{
+	UserID             int        `json:"user_id"`
+	TargetProfessionID int        `json:"target_profession"`
+	Street             string     `json:"street"`
+	DistrictID         int        `json:"district_id"`
+	StateID            int        `json:"state_id"`
+}
+
 type WorkspaceImages struct {
 	ID     int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	WorkID int    `json:"work_id"`
