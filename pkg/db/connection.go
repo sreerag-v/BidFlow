@@ -26,5 +26,6 @@ func ConnectDatabase(cfg config.Config) (*gorm.DB, error) {
 	db.AutoMigrate(domain.Rating{})
 	db.AutoMigrate(domain.Work{})
 	db.AutoMigrate(domain.WorkspaceImages{})
+	db.AutoMigrate(domain.Bid{})
 	return db, dbErr
 }

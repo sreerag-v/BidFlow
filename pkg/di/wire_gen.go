@@ -51,12 +51,15 @@ func InitializeAPI(cfg config.Config) (*httpserver.ServerHttp, error) {
 	interfacesProviderRepo := providerRepo.NewProviderRepo(gormDB)
 	interfacesProviderUsecase := providerUsecase.NewProviderUsecase(interfacesProviderRepo, interfacesHelper)
 	providerHandler := proiderHandler.NewProviderHandler(interfacesProviderUsecase)
+	proWorkRepo := providerRepo.NewProWorkRepo(gormDB)
+	proWorkUsecase := providerUsecase.NewProWorkUsecase(proWorkRepo, profileRepo)
+	proWorkHandler := proiderHandler.NewProWorkHandler(proWorkUsecase)
 	interfacesUserRepo := userRepo.NewUserRepo(gormDB)
 	interfacesUserUsecase := userUsecase.NewUserUsecase(interfacesUserRepo, interfacesHelper)
 	userHandlerUserHandler := userHandler.NewUserHandler(interfacesUserUsecase)
 	workRepo := userRepo.NewWorkRepo(gormDB)
 	workUsecase := userUsecase.NewWorkUsecase(workRepo)
 	workHandler := userHandler.NewWorkHandler(workUsecase)
-	serverHttp := httpserver.NewServerHttp(adminHandlerAdminHandler, categoryHandler, serviceHandler, regionHandler, userMgmtHandler, profileHandler, providerHandler, userHandlerUserHandler, workHandler)
+	serverHttp := httpserver.NewServerHttp(adminHandlerAdminHandler, categoryHandler, serviceHandler, regionHandler, userMgmtHandler, profileHandler, providerHandler, proWorkHandler, userHandlerUserHandler, workHandler)
 	return serverHttp, nil
 }

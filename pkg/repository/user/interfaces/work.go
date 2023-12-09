@@ -16,5 +16,12 @@ type WorkRepo interface {
 	AddImageOfWork(string,int)error
 	GetAllCompletedWorksOfAUser(id int) ([]int, error)
 	GetAllOngoingWorksOfAUser(id int) ([]int, error)
+	AssignWorkToProvider(work_id, pro_id int) error
+	CheckWorkCommitOrNot(int)(domain.Work,error)
+	MakeWorkAsCompleted(id int) error
+	RateWork(models.RatingModel, int) error
 
+	FindProviderById(int)(domain.Provider,error)
+	FindBidExistOrNot(int,int)(domain.Bid,error)
+	AcceptBid(int,int)error
 }

@@ -54,4 +54,5 @@ type Bid struct {
 	Provider    Provider `json:"-" gorm:"foreignkey:ProID;constraint:OnDelete:CASCADE"`
 	Estimate    float64  `json:"estimate"`
 	Description string   `json:"description"`
+	AcceptedBid bool     `json:"accepted_bid"`
 }

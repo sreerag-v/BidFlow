@@ -2,13 +2,15 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	proiderHandler "github.com/sreerag_v/BidFlow/pkg/api/handler/provider"
 	userHandler "github.com/sreerag_v/BidFlow/pkg/api/handler/user"
 	"github.com/sreerag_v/BidFlow/pkg/api/middleware"
 )
 
 func UserRoutes(engine *gin.RouterGroup,
 	userHandler *userHandler.UserHandler,
-	workHandler *userHandler.WorkHandler) {
+	workHandler *userHandler.WorkHandler,
+	proworkHandler *proiderHandler.ProWorkHandler) {
 	engine.POST("/signup", userHandler.SignUp)
 	engine.POST(("/login"), userHandler.Login)
 
@@ -21,19 +23,28 @@ func UserRoutes(engine *gin.RouterGroup,
 		{
 			profile.GET("/show", userHandler.UserProfile)
 			profile.PATCH("update", userHandler.UpdateProfile)
-			profile.POST("sent-otp",userHandler.ForgottPassword)
-			profile.POST("change-password",userHandler.ChangePassword)
+			profile.POST("sent-otp", userHandler.ForgottPassword)
+			profile.POST("change-password", userHandler.ChangePassword)
 		}
 
-		works:=engine.Group("/works")
+		works := engine.Group("/works")
 		{
-			works.POST("/add",workHandler.ListNewOpening)
-			works.GET("/list",workHandler.GetAllListedWorks)
-			works.POST("/image",workHandler.AddImageOfWork)
+			works.POST("/add", workHandler.ListNewOpening)
+			works.GET("/list", workHandler.GetAllListedWorks)
+			works.POST("/image", workHandler.AddImageOfWork)
 
-			works.GET("/on-going",workHandler.ListAllOngoingWorks)
-			works.GET("/finished",workHandler.ListAllCompletedWorks)
-			works.GET("/work-byid/:id",workHandler.WorkDetailsById)
+			works.GET("/on-going", workHandler.ListAllOngoingWorks)
+			works.GET("/finished", workHandler.ListAllCompletedWorks)
+			works.GET("/work-byid/:id", workHandler.WorkDetailsById)
+		}
+
+		workMGMT := works.Group("work-mgmt")
+		{
+			workMGMT.GET("/bids/:id", proworkHandler.GetAllOtherBidsOnTheLeads)
+			workMGMT.PUT("/accept-bid/:id",workHandler.AcceptBid)
+			workMGMT.PUT("/assign-work/:id", workHandler.AssignWorkToProvider)
+			workMGMT.PUT("/work-completed/:id", workHandler.MakeWorkAsCompleted)
+			workMGMT.POST("/rate-work/:id", workHandler.RateWork)
 		}
 	}
 }

@@ -111,3 +111,80 @@ func (work *WorkRepo) GetAllOngoingWorksOfAUser(id int) ([]int, error) {
 
 	return works, nil
 }
+
+func (w *WorkRepo) AssignWorkToProvider(work_id, pro_id int) error {
+
+	err := w.DB.Exec("UPDATE  works SET pro_id = $1,work_status = 'committed' WHERE id = $2", pro_id, work_id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkRepo)	CheckWorkCommitOrNot(id int)(domain.Work,error){
+	var body domain.Work
+	if err := w.DB.Table("works").Where("id = ?", id).Scan(&body).Error; err != nil {
+		return domain.Work{}, err
+	}
+
+	return body,nil
+}
+
+func (w *WorkRepo) MakeWorkAsCompleted(id int) error {
+
+	err := w.DB.Exec("UPDATE  works SET work_status = 'completed' WHERE id = $1", id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkRepo) RateWork(model models.RatingModel, id int) error {
+
+	err := w.DB.Exec("INSERT INTO ratings(rating,feedback,work_id) VALUES ($1,$2,$3)", model.Rating, model.Feedback, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkRepo)	FindProviderById(id int)(domain.Provider,error){
+	var body domain.Provider
+
+	err:=w.DB.Table("providers").Where("id = ?",id).Scan(&body).Error
+
+	if err!=nil{
+		return domain.Provider{},err
+	}
+
+	return body,nil
+}
+
+func (w *WorkRepo)	FindBidExistOrNot(pro_id int,bid_id int)(domain.Bid,error){
+	var body domain.Bid
+
+	err:=w.DB.Table("bids").Where("id = ? AND pro_id = ?",bid_id,pro_id).Scan(&body).Error
+	if err!=nil{
+		return domain.Bid{},err
+	}
+
+	return body,nil
+}
+
+
+func (w *WorkRepo) AcceptBid(workID int, proID int) error {
+	err := w.DB.Table("bids").
+		Where("work_id = ? AND pro_id = ?", workID, proID).
+		Updates(map[string]interface{}{"accepted_bid": true}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+

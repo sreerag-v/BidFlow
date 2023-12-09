@@ -51,7 +51,7 @@ func (work *WorkUsecase) GetAllListedWorks(id int) ([]models.WorkDetails, error)
 
 		var provider string
 
-		pro_id, err :=work.Repo.FindProviderIdFromWork(v)
+		pro_id, err := work.Repo.FindProviderIdFromWork(v)
 		if err != nil {
 			return []models.WorkDetails{}, err
 		}
@@ -84,16 +84,16 @@ func (work *WorkUsecase) GetAllListedWorks(id int) ([]models.WorkDetails, error)
 	return model, nil
 }
 
-func (work *WorkUsecase) AddImageOfWork(image string,work_id int)error{
-	exist,err:=work.Repo.GetDetailsOfAWork(work_id)
-	if err!=nil{
+func (work *WorkUsecase) AddImageOfWork(image string, work_id int) error {
+	exist, err := work.Repo.GetDetailsOfAWork(work_id)
+	if err != nil {
 		return err
 	}
 	if exist.ID == 0 {
-		return  errors.New("work does not exist")
+		return errors.New("work does not exist")
 	}
 
-	return work.Repo.AddImageOfWork(image,work_id)
+	return work.Repo.AddImageOfWork(image, work_id)
 }
 
 func (work *WorkUsecase) ListAllCompletedWorks(id int) ([]models.WorkDetails, error) {
@@ -247,4 +247,89 @@ func (work *WorkUsecase) WorkDetailsById(id int) (models.WorkDetails, error) {
 	result.WorkStatus = details.WorkStatus
 
 	return result, nil
+}
+
+func (w *WorkUsecase) AssignWorkToProvider(work_id, pro_id int) error {
+	commited, err := w.Repo.CheckWorkCommitOrNot(work_id)
+	if err != nil {
+		return err
+	}
+
+	if commited.WorkStatus == "committed" {
+		return errors.New("Work is Already Commited")
+	} else if commited.WorkStatus == "completed" {
+		return errors.New("Work Already Completed")
+	}
+	err = w.Repo.AssignWorkToProvider(work_id, pro_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkUsecase) MakeWorkAsCompleted(id int) error {
+	committed, err := w.Repo.CheckWorkCommitOrNot(id)
+	if err != nil {
+		return err
+	}
+
+	if committed.WorkStatus != "committed" {
+		return errors.New("Work is not Commited")
+	}
+	//pass to repository
+	err = w.Repo.MakeWorkAsCompleted(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkUsecase) RateWork(model models.RatingModel, id int) error {
+
+	//pass to repository
+	err := w.Repo.RateWork(model, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *WorkUsecase) AcceptBid(work_id int, Pro_id int,bid_id int) error {
+	exist, err := w.Repo.GetDetailsOfAWork(work_id)
+	if err != nil {
+		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("Work Not Found")
+	}
+
+	get,err:=w.Repo.FindBidExistOrNot(Pro_id,bid_id)
+	if err!=nil{
+		return err
+	}
+
+	if get.ID == 0 || get.ProID == 0{
+		return errors.New("bid not found in this id")
+	}
+
+
+	find, err := w.Repo.FindProviderById(Pro_id)
+	if err != nil {
+		return err
+	}
+
+	if find.ID == 0{
+		return errors.New("Provider not found in this id")
+	}
+
+	err= w.Repo.AcceptBid(work_id,Pro_id)
+	if err!=nil{
+		return err
+	}
+
+	return nil
 }

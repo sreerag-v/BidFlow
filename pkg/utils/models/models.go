@@ -174,8 +174,8 @@ type ProviderDetailsForUser struct {
 }
 
 type RatingModel struct {
-	Rating   int    `json:"rating"`
-	Feedback string `json:"feedback"`
+	Rating   float32 `json:"rating"`
+	Feedback string  `json:"feedback"`
 }
 
 type UpdateUser struct {
@@ -188,7 +188,7 @@ type Forgott struct {
 	Email string `json:"email" gorm:"not null"`
 }
 
-type ChangePassword struct{
+type ChangePassword struct {
 	Email           string
 	Otp             string
 	Password        string
