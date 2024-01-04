@@ -12,7 +12,7 @@ type Provider struct {
 	IsRejected bool   `json:"is_rejected" gorm:"default:false"`
 }
 
-type ProfileImages struct {
+type ProfileImage struct {
 	ID       int      `json:"id" gorm:"primaryKey;autoIncrement"`
 	ProID    int      `json:"pro_id"`
 	Provider Provider `json:"-" gorm:"foreignkey:ProID;constraint:OnDelete:CASCADE"`
@@ -26,6 +26,19 @@ type Probook struct {
 	ProfessionID int        `json:"profession_id"`
 	Profession   Profession `json:"-" gorm:"foreignkey:ProfessionID;constraint:OnDelete:CASCADE"`
 }
+
+type ProProfileLocation struct{
+	ID           int        `json:"id" gorm:"primaryKey;autoIncrement"`
+	ProID        int        `json:"pro_id"`
+	District     string     `json:"district"`
+}
+
+type ProProfileService struct{
+	ID           int        `json:"id" gorm:"primaryKey;autoIncrement"`
+	ProID        int        `json:"pro_id"`
+	Service	     string     `json:"service"`
+}
+
 
 type PreferredLocation struct {
 	ID         int      `json:"id" gorm:"primaryKey;autoIncrement"`

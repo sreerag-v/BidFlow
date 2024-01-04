@@ -15,5 +15,5 @@ type ProWorkUsecase interface{
 	GetAllOnGoingWorks(int,models.PageNation) ([]models.WorkDetails, error)
 	GetCompletedWorks(int,models.PageNation) ([]models.WorkDetails, error)
 
-	GetAllAcceptedBids(int,models.PageNation)([]domain.Bid,error)
+	GetAllAcceptedBids(int,models.PageNation)([]domain.AcceptedBidRes,error)
 }

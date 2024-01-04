@@ -77,25 +77,42 @@ func (p *ProWorkRepo) CheckIfAlreadyBidded(work_id, pro_id int) (bool, error) {
 	return count > 0, nil
 }
 
-func (p *ProWorkRepo) PlaceBid(model models.PlaceBid) error {
-	if err := p.DB.Exec(`INSERT INTO bids(work_id,pro_id,estimate,description) VALUES($1,$2,$3,$4)`, model.WorkID, model.ProID, model.Estimate, model.Description).Error; err != nil {
+func (p *ProWorkRepo) PlaceBid(model models.PlaceBid, Uid int) error {
+	if err := p.DB.Exec(`INSERT INTO bids(work_id,pro_id,estimate,description,user_id) VALUES($1,$2,$3,$4,$5)`, model.WorkID, model.ProID, model.Estimate, model.Description, Uid).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (p *ProWorkRepo) ReplaceBidWithNewBid(model models.PlaceBid) error {
-	if err := p.DB.Exec(`UPDATE bids SET estimate = $1, description = $2 WHERE pro_id = $3 AND work_id = $4`, model.Estimate, model.Description, model.ProID, model.WorkID).Error; err != nil {
+func (p *ProWorkRepo) ReplaceBidWithNewBid(model models.PlaceBid, Uid int) error {
+	if err := p.DB.Exec(`UPDATE bids SET estimate = $1, description = $2 WHERE pro_id = $3 AND work_id = $4 AND user_id = $5`, model.Estimate, model.Description, model.ProID, model.WorkID, Uid).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (p *ProWorkRepo) GetAllOtherBidsOnTheLeads(work_id int) ([]models.BidDetails, error) {
+func (p *ProWorkRepo) CheckBidExistOrNot(work_id int)(domain.Bid,error){
+	var body domain.Bid
+
+	err:=p.DB.Table("bids").Where("work_id = ?",work_id).Scan(&body).Error
+	if err!=nil{
+		return domain.Bid{},err
+	}
+
+	return body,nil
+}
+
+
+func (p *ProWorkRepo) GetAllOtherBidsOnTheLeads(workID int) ([]models.BidDetails, error) {
 	var model []models.BidDetails
-	if err := p.DB.Raw(`SELECT bids.id,providers.name AS provider,estimate,description FROM bids JOIN providers ON bids.pro_id = providers.id WHERE bids.work_id = $1`, work_id).Scan(&model).Error; err != nil {
+
+	if err := p.DB.Table("bids").
+		Select("work_id, providers.name AS provider, providers.id AS provider_id, estimate, description").
+		Joins("JOIN providers ON bids.pro_id = providers.id").
+		Where("bids.work_id = ? AND is_deleted = ?", workID, false).
+		Scan(&model).Error; err != nil {
 		return []models.BidDetails{}, err
 	}
 
@@ -109,6 +126,17 @@ func (p *ProWorkRepo) FindProviderName(pro_id int) (string, error) {
 	}
 
 	return name, nil
+}
+
+func (p *ProWorkRepo) FindWorkExistOrNot(work_id int) (domain.Work, error) {
+	var body domain.Work
+
+	err := p.DB.Table("works").Where("id = ?", work_id).Scan(&body).Error
+	if err != nil {
+		return domain.Work{}, err
+	}
+
+	return body, err
 }
 
 func (p *ProWorkRepo) GetAllWorksOfAProvider(pro_id int) ([]int, error) {
@@ -138,22 +166,32 @@ func (p *ProWorkRepo) GetCompletedWorksOfAProvider(pro_id int) ([]int, error) {
 	return works, nil
 }
 
-func (p *ProWorkRepo) GetAllAcceptedBids(pro_id int, page models.PageNation) ([]domain.Bid, error) {
+func (p *ProWorkRepo) GetAllAcceptedBids(pro_id int, page models.PageNation) ([]domain.AcceptedBidRes, error) {
 
 	limit := page.Count
 	offset := (page.PageNumber - 1) * limit
 
-	var body []domain.Bid
+	var body []domain.AcceptedBidRes
 
 	err := p.DB.Table("bids").
 		Order("id asc").
 		Limit(int(limit)).
 		Offset(int(offset)).
-		Where("pro_id = ? AND accepted_bid = ?", pro_id, true).
+		Where("pro_id = ? AND accepted_bid = ? AND is_deleted = ?", pro_id, true, true).
 		Scan(&body).Error
 	if err != nil {
-		return []domain.Bid{}, err
+		return []domain.AcceptedBidRes{}, err
 	}
 
 	return body, nil
+}
+
+
+func (p *ProWorkRepo) FindUserByUid(Uid int)(domain.User,error){
+	var Body domain.User
+	err:=p.DB.Table("users").Where("id = ?",Uid).Scan(&Body).Error
+	if err!=nil{
+		return domain.User{},err
+	}
+	return Body,nil
 }

@@ -26,7 +26,7 @@ func NewCategoryHandler(Usecase interfaces.CategoryUsecase) *CategoryHandler {
 func (adm *CategoryHandler) CreateCategory(c *gin.Context) {
 	var Category models.CreateCategory
 	if err := c.Bind(&Category); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(), StatusCode: 400}
 
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -37,12 +37,12 @@ func (adm *CategoryHandler) CreateCategory(c *gin.Context) {
 
 	err := adm.usecase.CreateCategory(ctx, Category.Category)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error in Create Category", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully created category", StatusCode: 201}
+	successRes := response.SuccResponse{Response: "Successfully created category", StatusCode: 201}
 	c.JSON(http.StatusCreated, successRes)
 }
 
@@ -54,7 +54,7 @@ func (adm *CategoryHandler) ListCatgory(c *gin.Context) {
 	err3 := errors.Join(err1, err2)
 
 	if err3 != nil {
-		res := response.ErrResponse{Data: "invalid input", Error: err3.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "invalid input", Error: err3.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -69,17 +69,17 @@ func (adm *CategoryHandler) ListCatgory(c *gin.Context) {
 
 	Cat, err := adm.usecase.ListCatgory(ctx, pagenation)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In List Category", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	if Cat == nil {
-		res := response.ErrResponse{Data: "Go to Previous Page <.......", Error: "Category Not found ", StatusCode: 200}
+		res := response.ErrResponse{Response: "!!!Page Not Found!!!", Error: "Category Not found ", StatusCode: 200}
 		c.JSON(http.StatusOK, res)
 		return
 	}
-	successRes := response.SuccResponse{Data: Cat, StatusCode: 201}
+	successRes := response.SuccResponse{Response: Cat, StatusCode: 201}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -89,18 +89,18 @@ func (adm *CategoryHandler) DeleteCategory(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
 	err = adm.usecase.DeleteCategory(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In Delete Category", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully deleted category", StatusCode: 201}
+	successRes := response.SuccResponse{Response: "Successfully deleted category", StatusCode: 201}
 	c.JSON(http.StatusOK, successRes)
 }

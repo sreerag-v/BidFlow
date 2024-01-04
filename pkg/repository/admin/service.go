@@ -3,6 +3,7 @@ package adminRepo
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/repository/admin/interfaces"
@@ -10,16 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type ServiceRepo struct{
+type ServiceRepo struct {
 	DB *gorm.DB
 }
 
-func NewServiceRepo(DB *gorm.DB)interfaces.ServiceRepo{
+func NewServiceRepo(DB *gorm.DB) interfaces.ServiceRepo {
 	return &ServiceRepo{
 		DB: DB,
 	}
 }
-
 
 func (sr *ServiceRepo) CheckIfServiceAlreadyExists(ctx context.Context, service string) (bool, error) {
 	if ctx.Err() != nil {
@@ -67,6 +67,30 @@ func (sr *ServiceRepo) GetServicesInACategory(ctx context.Context, id int) ([]do
 	return services, nil
 }
 
+func (sr *ServiceRepo) GetAllServices(ctx context.Context, page models.PageNation) ([]domain.Profession, error) {
+	if ctx.Err() != nil {
+		return []domain.Profession{}, errors.New("timeout")
+	}
+
+	limit := page.Count
+	offset := (page.PageNumber - 1) * limit
+
+	var service []domain.Profession
+	err := sr.DB.
+		Table("professions").
+		Order("id asc").
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Scan(&service).
+		Error
+
+	if err != nil {
+		return service, fmt.Errorf("failed to get categories from the database")
+	}
+
+	return service, nil
+}
+
 func (sr *ServiceRepo) DeleteService(ctx context.Context, id int) error {
 	tx := sr.DB.Begin()
 	err := tx.Exec("UPDATE professions SET is_deleted = TRUE WHERE id = $1", id).Error
@@ -83,7 +107,7 @@ func (sr *ServiceRepo) DeleteService(ctx context.Context, id int) error {
 	return nil
 }
 
-func (sr  *ServiceRepo) ReActivateService(ctx context.Context, id int) error {
+func (sr *ServiceRepo) ReActivateService(ctx context.Context, id int) error {
 	tx := sr.DB.Begin()
 	err := tx.Exec("UPDATE professions SET is_deleted = False WHERE id = $1", id).Error
 	if err != nil {

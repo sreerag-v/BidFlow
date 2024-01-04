@@ -12,10 +12,17 @@ type WorkUsecase interface {
 	ListAllCompletedWorks(id int) ([]models.WorkDetails, error)
 	ListAllOngoingWorks(id int) ([]models.WorkDetails, error)
 
+	GetAllBids(models.PageNation,int)([]models.BidDetails,error)
+	GetAllAcceptedBids(models.PageNation,int)([]models.BidDetails,error)
 	WorkDetailsById(id int) (models.WorkDetails, error)
 	AssignWorkToProvider(work_id, pro_id int) error
 	MakeWorkAsCompleted(id int) error
 	RateWork(models.RatingModel, int) error
 
-	AcceptBid(int,int,int)error
+	AcceptBid(int,int,int,int)error
+	
+	RazorPaySent(int,int)(interface{},float64,error)
+	RazorPaySucess(Uid int,Oid string,Pid string,Sig string,total string)error
+
 }
+

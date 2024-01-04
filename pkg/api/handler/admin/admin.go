@@ -27,7 +27,7 @@ func NewAdminHandler(usecase interfaces.AdminUsecase) *AdminHandler {
 func (adm *AdminHandler) AdminSignup(c *gin.Context) {
 	var Body domain.Admin
 	if err := c.Bind(&Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(), StatusCode: 400}
 
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -35,7 +35,7 @@ func (adm *AdminHandler) AdminSignup(c *gin.Context) {
 	// validate the struct
 	validate := validator.New()
 	if err := validate.Struct(Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "StructError", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -63,18 +63,18 @@ func (adm *AdminHandler) AdminSignup(c *gin.Context) {
 	select {
 	case err := <-errCh:
 		if err != nil {
-			res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+			res := response.ErrResponse{Response: "Error In Channel", Error: err.Error(), StatusCode: 500}
 			c.JSON(http.StatusInternalServerError, res)
 			return
 		}
 	case <-ctx.Done():
 		// If the context times out, respond with an appropriate error
-		res := response.ErrResponse{Data: nil, Error: "Request timed out", StatusCode: 500}
+		res := response.ErrResponse{Response: nil, Error: "Request timed out", StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully created new admin", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully created new admin", StatusCode: 200}
 	c.JSON(http.StatusCreated, successRes)
 }
 
@@ -82,13 +82,13 @@ func (adm *AdminHandler) AdminLogin(c *gin.Context) {
 	var Body models.AdminLogin
 
 	if err := c.Bind(&Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	validate := validator.New()
 	if err := validate.Struct(Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Struct Error", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -99,19 +99,19 @@ func (adm *AdminHandler) AdminLogin(c *gin.Context) {
 
 	Token, err := adm.usecase.AdminLogin(ctx, Body)
 	if err != nil {
-		errRes := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		errRes := response.ErrResponse{Response: "Error In AdminLogin", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, errRes)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: Token, StatusCode: 200}
+	successRes := response.LoginRes{TokenString: Token, StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
 func (adm *AdminHandler) DeleteAdmin(c *gin.Context) {
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Query Error", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -121,11 +121,11 @@ func (adm *AdminHandler) DeleteAdmin(c *gin.Context) {
 
 	err = adm.usecase.DeleteAdmin(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error in Admin Delete", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully deleted admin", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully deleted admin", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }

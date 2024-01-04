@@ -126,8 +126,9 @@ type GetLocations struct {
 }
 
 type BidDetails struct {
-	ID          int     `json:"id"`
+	Work_id          int     `json:"work_id"`
 	Provider    string  `json:"provider"`
+	ProviderID  int     `json:"provider_id"`
 	Estimate    float64 `json:"estimate"`
 	Description string  `json:"description"`
 }
@@ -172,7 +173,15 @@ type ProviderDetailsForUser struct {
 	Phone         string `json:"phone"`
 	AverageRating int    `json:"rating"`
 }
-
+type ProviderProfile struct {
+	Image         string `json:"image"`
+	Name          string `json:"name" gorm:"not null"`
+	Email         string `json:"email" gorm:"not null" validate:"required,email"`
+	Phone         string `json:"phone" gorm:"not null"`
+	Profession    string `json:"profession" gorm:"not null"`
+	District      string `json:"district" gorm:"not null"`
+	AverageRating int    `json:"rating" gorm:"not null"`
+}
 type RatingModel struct {
 	Rating   float32 `json:"rating"`
 	Feedback string  `json:"feedback"`

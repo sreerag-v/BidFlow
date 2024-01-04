@@ -60,6 +60,20 @@ func (sr *ServiceUsecase) GetServicesInACategory(ctx context.Context, id int) ([
 	return service, nil
 }
 
+func (sr *ServiceUsecase)	GetAllServices(ctx context.Context,page models.PageNation)([]domain.Profession,error){
+	services,err:=sr.Repo.GetAllServices(ctx,page)
+	if err!=nil{
+		return []domain.Profession{},err
+	}
+	err = ctx.Err()
+	if err != nil {
+		return []domain.Profession{}, errors.New("request timeout")
+	}
+
+	return services, nil
+}
+
+
 func (sr *ServiceUsecase) DeleteService(ctx context.Context, id int) error {
 
 	err := sr.Repo.DeleteService(ctx, id)

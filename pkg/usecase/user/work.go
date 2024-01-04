@@ -3,6 +3,8 @@ package userUsecase
 import (
 	"errors"
 
+	"github.com/razorpay/razorpay-go"
+	"github.com/sreerag_v/BidFlow/pkg/config"
 	"github.com/sreerag_v/BidFlow/pkg/domain"
 	"github.com/sreerag_v/BidFlow/pkg/repository/user/interfaces"
 	services "github.com/sreerag_v/BidFlow/pkg/usecase/user/interfaces"
@@ -206,6 +208,25 @@ func (work *WorkUsecase) ListAllOngoingWorks(id int) ([]models.WorkDetails, erro
 	return model, nil
 }
 
+func (work *WorkUsecase) GetAllBids(page models.PageNation, Uid int) ([]models.BidDetails, error) {
+	bids, err := work.Repo.GetAllBids(page, Uid)
+	if err != nil {
+		return []models.BidDetails{}, err
+	}
+
+	return bids, nil
+}
+
+func (work *WorkUsecase) GetAllAcceptedBids(page models.PageNation,Uid int)([]models.BidDetails,error){
+	bids, err := work.Repo.GetAllAcceptedBids(page, Uid)
+	if err != nil {
+		return []models.BidDetails{}, err
+	}
+
+	return bids, nil
+}
+
+
 func (work *WorkUsecase) WorkDetailsById(id int) (models.WorkDetails, error) {
 
 	details, err := work.Repo.GetDetailsOfAWork(id)
@@ -255,6 +276,10 @@ func (w *WorkUsecase) AssignWorkToProvider(work_id, pro_id int) error {
 		return err
 	}
 
+	if commited.ID == 0 {
+		return errors.New("Work Not Found")
+	}
+
 	if commited.WorkStatus == "committed" {
 		return errors.New("Work is Already Commited")
 	} else if commited.WorkStatus == "completed" {
@@ -274,6 +299,10 @@ func (w *WorkUsecase) MakeWorkAsCompleted(id int) error {
 		return err
 	}
 
+	if committed.ID == 0 {
+		return errors.New("Work Not Found")
+	}
+
 	if committed.WorkStatus != "committed" {
 		return errors.New("Work is not Commited")
 	}
@@ -286,10 +315,17 @@ func (w *WorkUsecase) MakeWorkAsCompleted(id int) error {
 	return nil
 }
 
-func (w *WorkUsecase) RateWork(model models.RatingModel, id int) error {
+func (w *WorkUsecase) RateWork(model models.RatingModel, work_id int) error {
+	exist, err := w.Repo.GetDetailsOfAWork(work_id)
+	if err != nil {
+		return err
+	}
 
+	if exist.ID == 0 {
+		return errors.New("Work Not Found")
+	}
 	//pass to repository
-	err := w.Repo.RateWork(model, id)
+	err = w.Repo.RateWork(model, work_id)
 	if err != nil {
 		return err
 	}
@@ -297,7 +333,7 @@ func (w *WorkUsecase) RateWork(model models.RatingModel, id int) error {
 	return nil
 }
 
-func (w *WorkUsecase) AcceptBid(work_id int, Pro_id int,bid_id int) error {
+func (w *WorkUsecase) AcceptBid(work_id int, Pro_id int, bid_id int, Uid int) error {
 	exist, err := w.Repo.GetDetailsOfAWork(work_id)
 	if err != nil {
 		return err
@@ -307,29 +343,88 @@ func (w *WorkUsecase) AcceptBid(work_id int, Pro_id int,bid_id int) error {
 		return errors.New("Work Not Found")
 	}
 
-	get,err:=w.Repo.FindBidExistOrNot(Pro_id,bid_id)
-	if err!=nil{
+	get, err := w.Repo.FindBidExistOrNot(Pro_id, bid_id)
+	if err != nil {
 		return err
 	}
 
-	if get.ID == 0 || get.ProID == 0{
+	if get.IsDeleted {
+		return errors.New("This Bid Already Accepted")
+	}
+
+	if get.ID == 0 || get.ProID == 0 {
 		return errors.New("bid not found in this id")
 	}
 
+	// after that add that amount into the work struct
+	err = w.Repo.AddAmountInWork(work_id, Uid, get.Estimate)
+	if err != nil {
+		return err
+	}
 
 	find, err := w.Repo.FindProviderById(Pro_id)
 	if err != nil {
 		return err
 	}
 
-	if find.ID == 0{
+	if find.ID == 0 {
 		return errors.New("Provider not found in this id")
 	}
 
-	err= w.Repo.AcceptBid(work_id,Pro_id)
-	if err!=nil{
+	err = w.Repo.AcceptBid(work_id, Pro_id)
+	if err != nil {
+		return err
+	}
+
+	// after accepting bid Delete the bid incoming bids
+	err = w.Repo.DeleteBids(work_id, Pro_id, bid_id)
+	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (w *WorkUsecase) RazorPaySent(work_id int, Uid int) (interface{}, float64, error) {
+	check, err := w.Repo.GetDetailsOfAWork(work_id)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if check.WorkStatus != "completed" {
+		return nil, 0, errors.New("Work is not completed")
+	} else if check.WorkStatus == "" {
+		return nil, 0, errors.New("Work Not Found")
+	}
+
+	amount, err := w.Repo.GetAmountFromWork(work_id, Uid)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	client := razorpay.NewClient(config.GetRazor().Key, config.GetRazor().Secret)
+	data := map[string]interface{}{
+		"amount":   amount,
+		"currency": "INR",
+		"receipt":  "some_receipt_id",
+	}
+	body, err := client.Order.Create(data, nil)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// make sure the work table payment was done !!!!
+	err = w.Repo.UpdateWorkPaymentField(work_id, Uid)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	value := body["id"]
+
+	return value, amount, nil
+}
+
+func (w *WorkUsecase) RazorPaySucess(Uid int, Oid string, Pid string, Sig string, total string) error {
+	return w.Repo.RazorPaySucess(Uid, Oid, Pid, Sig, total)
 }

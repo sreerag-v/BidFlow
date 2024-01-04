@@ -21,7 +21,18 @@ type WorkRepo interface {
 	MakeWorkAsCompleted(id int) error
 	RateWork(models.RatingModel, int) error
 
+	GetAllBids(models.PageNation,int)([]models.BidDetails,error)
+	GetAllAcceptedBids(models.PageNation,int)([]models.BidDetails,error)
+
 	FindProviderById(int)(domain.Provider,error)
 	FindBidExistOrNot(int,int)(domain.Bid,error)
 	AcceptBid(int,int)error
+
+	AddAmountInWork(int,int,float64)error
+	GetAmountFromWork(int,int)(float64,error)
+	DeleteBids(int,int,int)error
+
+	UpdateWorkPaymentField(int,int)error
+	RazorPaySucess(Uid int,Oid string,Pid string,Sig string,total string)error
+
 }

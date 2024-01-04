@@ -22,10 +22,15 @@ func ConnectDatabase(cfg config.Config) (*gorm.DB, error) {
 	db.AutoMigrate(domain.District{})
 	db.AutoMigrate(domain.Profession{})
 	db.AutoMigrate(domain.Probook{})
+	db.AutoMigrate(domain.ProfileImage{})
 	db.AutoMigrate(domain.PreferredLocation{})
 	db.AutoMigrate(domain.Rating{})
 	db.AutoMigrate(domain.Work{})
+	db.AutoMigrate(domain.ProProfileLocation{})
+	db.AutoMigrate(domain.ProProfileService{})
 	db.AutoMigrate(domain.WorkspaceImages{})
 	db.AutoMigrate(domain.Bid{})
+	db.AutoMigrate(&domain.RazorPay{})
+	db.AutoMigrate(domain.Payment{})
 	return db, dbErr
 }

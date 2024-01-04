@@ -7,14 +7,27 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProfileRepo struct{
+type ProfileRepo struct {
 	DB *gorm.DB
 }
 
-func NewProfileRepo(db *gorm.DB)interfaces.ProfileRepo{
+func NewProfileRepo(db *gorm.DB) interfaces.ProfileRepo {
 	return &ProfileRepo{
 		DB: db,
 	}
+}
+
+func (pr *ProfileRepo) AddProfileImage(image string, Uid int) error {
+	addimage := domain.ProfileImage{
+		ProID: Uid,
+		Image: image,
+	}
+
+	err := pr.DB.Create(&addimage).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (pr *ProfileRepo) CheckIfServiceIsAlreadyRegistered(user_id, service_id int) (bool, error) {
@@ -26,7 +39,15 @@ func (pr *ProfileRepo) CheckIfServiceIsAlreadyRegistered(user_id, service_id int
 	return count > 0, nil
 }
 
-func (pr *ProfileRepo) AddService(user_id, service_id int) error {
+func (pr *ProfileRepo) AddService(user_id, service_id int, profession string) error {
+	ProfileService := domain.ProProfileService{
+		ProID:   user_id,
+		Service: profession,
+	}
+	err := pr.DB.Create(&ProfileService).Error
+	if err != nil {
+		return err
+	}
 
 	if err := pr.DB.Exec("INSERT INTO probooks(pro_id,profession_id)VALUES($1,$2)", user_id, service_id).Error; err != nil {
 		return err
@@ -37,12 +58,17 @@ func (pr *ProfileRepo) AddService(user_id, service_id int) error {
 
 func (pr *ProfileRepo) DeleteService(user_id, service_id int) error {
 
+	if err := pr.DB.Exec("DELETE FROM pro_profile_services WHERE pro_id = $1", user_id).Error; err != nil {
+		return err
+	}
+
 	if err := pr.DB.Exec("DELETE FROM probooks WHERE pro_id = $1 AND profession_id = $2", user_id, service_id).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
+
 func (pr *ProfileRepo) CheckIfDistrictIsAlreadyAdded(id, district int) (bool, error) {
 	var count int64
 	if err := pr.DB.Raw("SELECT COUNT(*) FROM preferred_locations WHERE pro_id = $1 AND district_id = $2", id, district).Scan(&count).Error; err != nil {
@@ -52,8 +78,15 @@ func (pr *ProfileRepo) CheckIfDistrictIsAlreadyAdded(id, district int) (bool, er
 	return count > 0, nil
 }
 
-func (pr *ProfileRepo) AddLocation(id, district int) error {
-
+func (pr *ProfileRepo) AddLocation(id int, district int, dis string) error {
+	ProfileService := domain.ProProfileLocation{
+		ProID:    id,
+		District: dis,
+	}
+	err := pr.DB.Create(&ProfileService).Error
+	if err != nil {
+		return err
+	}
 	if err := pr.DB.Exec("INSERT INTO preferred_locations(pro_id,district_id)VALUES($1,$2)", id, district).Error; err != nil {
 		return err
 	}
@@ -61,6 +94,10 @@ func (pr *ProfileRepo) AddLocation(id, district int) error {
 	return nil
 }
 func (pr *ProfileRepo) RemovePreferredLocation(id, district int) error {
+
+	if err := pr.DB.Exec("DELETE FROM pro_profile_locations WHERE pro_id = $1", id).Error; err != nil {
+		return err
+	}
 
 	if err := pr.DB.Exec("DELETE FROM preferred_locations WHERE pro_id = $1 AND district_id = $2", id, district).Error; err != nil {
 		return err
@@ -79,7 +116,6 @@ func (pr *ProfileRepo) GetAllServiceIdsOfAProvider(id int) ([]int, error) {
 
 	return services, nil
 }
-
 
 func (pr *ProfileRepo) FindServiceDetailsFromID(id int) (domain.Profession, error) {
 
@@ -133,4 +169,40 @@ func (pr *ProfileRepo) GetRatingsOfAllRecordsOfAProvider(id int) ([]int, error) 
 	}
 
 	return ratings, nil
+}
+
+func (pr *ProfileRepo) GetImageOfProvider(id int) (string, error) {
+	var image string
+
+	err := pr.DB.Table("profile_images").Where("pro_id = ?", id).Select("image").Scan(&image).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	return image, nil
+}
+
+func (pr *ProfileRepo) GetServiceFromSelected(id int) (domain.ProProfileService, error) {
+	var body domain.ProProfileService
+
+	err := pr.DB.Table("pro_profile_services").Where("pro_id = ?", id).Scan(&body).Error
+
+	if err != nil {
+		return domain.ProProfileService{}, err
+	}
+
+	return body, nil
+}
+
+func (pr *ProfileRepo) GetLocationFromSelected(id int) (domain.ProProfileLocation, error) {
+	var body domain.ProProfileLocation
+
+	err := pr.DB.Table("pro_profile_locations").Where("pro_id = ?", id).Scan(&body).Error
+
+	if err != nil {
+		return domain.ProProfileLocation{}, err
+	}
+
+	return body, nil
 }

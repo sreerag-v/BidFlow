@@ -10,7 +10,8 @@ import (
 func UserRoutes(engine *gin.RouterGroup,
 	userHandler *userHandler.UserHandler,
 	workHandler *userHandler.WorkHandler,
-	proworkHandler *proiderHandler.ProWorkHandler) {
+	proworkHandler *proiderHandler.ProWorkHandler,
+	ProProfileHandler *proiderHandler.ProfileHandler) {
 	engine.POST("/signup", userHandler.SignUp)
 	engine.POST(("/login"), userHandler.Login)
 
@@ -38,13 +39,28 @@ func UserRoutes(engine *gin.RouterGroup,
 			works.GET("/work-byid/:id", workHandler.WorkDetailsById)
 		}
 
+		proprofile := engine.Group("pro-profile")
+		{
+			proprofile.GET("", ProProfileHandler.GetProDetails)
+		}
+
 		workMGMT := works.Group("work-mgmt")
 		{
+			workMGMT.GET("/allbids", workHandler.GetAllBids)
+			workMGMT.GET("/allacceptedbids",workHandler.GetAllAcceptedBids)
 			workMGMT.GET("/bids/:id", proworkHandler.GetAllOtherBidsOnTheLeads)
-			workMGMT.PUT("/accept-bid/:id",workHandler.AcceptBid)
+			workMGMT.PUT("/accept-bid/:id", workHandler.AcceptBid)
 			workMGMT.PUT("/assign-work/:id", workHandler.AssignWorkToProvider)
 			workMGMT.PUT("/work-completed/:id", workHandler.MakeWorkAsCompleted)
 			workMGMT.POST("/rate-work/:id", workHandler.RateWork)
 		}
 	}
+
+	Payment := engine.Group("/payment")
+	{
+		Payment.GET("/payment/razorpays/:id", workHandler.RazorPaySent)
+		Payment.GET("/payment/success", workHandler.RazorPaySucess)
+		// Payment.GET("/payment/successok/:id",workHandler.Success)
+	}
+
 }

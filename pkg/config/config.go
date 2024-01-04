@@ -27,6 +27,11 @@ type Smtp struct {
 	Email    string `mapstructure:"Email"`
 	Password string `mapstructure:"Password"`
 }
+type RazorPay struct {
+	Key    string `mapstructure:"key"`
+	Secret string `mapstructure:"Secret"`
+}
+
 var envs = []string{
 	"DB_HOST",
 	"DB_NAME",
@@ -40,22 +45,25 @@ var envs = []string{
 	"authtoken", "accountsid", "servicesid", // twilio
 	"Email", "Password", //smtp
 
+	"Key", "Secret", //Razorpay
+
 }
 var twilio Twilio
-var smtp Smtp 
+var smtp Smtp
+var razorPay RazorPay
 
-func LoadConfig()(Config,error){
+func LoadConfig() (Config, error) {
 	var config Config
 
 	viper.AddConfigPath("./")
 	viper.SetConfigFile(".env")
-	err:=viper.ReadInConfig()
+	err := viper.ReadInConfig()
 
-	if err!=nil{
+	if err != nil {
 		log.Fatal("error while loading viper")
 	}
 
-	for _,env := range envs{
+	for _, env := range envs {
 		if err := viper.BindEnv(env); err != nil {
 			return config, err
 		}
@@ -76,6 +84,10 @@ func LoadConfig()(Config,error){
 		return config, err
 	}
 
+	if err := viper.Unmarshal(&razorPay); err != nil {
+		return config, err
+	}
+
 	return config, nil
 }
 
@@ -84,4 +96,8 @@ func GetTilio() Twilio {
 }
 func GetSmtp() Smtp {
 	return smtp
+}
+
+func GetRazor() RazorPay {
+	return razorPay
 }

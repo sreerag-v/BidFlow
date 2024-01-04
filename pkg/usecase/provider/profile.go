@@ -8,14 +8,26 @@ import (
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
 )
 
-type ProfileUsecase struct{
+type ProfileUsecase struct {
 	Repo interfaces.ProfileRepo
 }
 
-func NewProfileUsecase(repo interfaces.ProfileRepo)service.ProfileUsecase{
+func NewProfileUsecase(repo interfaces.ProfileRepo) service.ProfileUsecase {
 	return &ProfileUsecase{
 		Repo: repo,
 	}
+}
+
+func (pr *ProfileUsecase) AddProfileImage(image string, Uid int) error {
+	exist, err := pr.Repo.FindProviderDetails(Uid)
+	if err != nil {
+		return err
+	}
+	if exist.ID == 0 {
+		return errors.New("provider does not exist")
+	}
+	return pr.Repo.AddProfileImage(image, Uid)
+
 }
 
 func (pr *ProfileUsecase) AddService(user_id int, service_id int) error {
@@ -29,7 +41,15 @@ func (pr *ProfileUsecase) AddService(user_id int, service_id int) error {
 		return errors.New("already exists")
 	}
 
-	if err := pr.Repo.AddService(user_id, service_id); err != nil {
+	service, err := pr.Repo.FindServiceDetailsFromID(service_id)
+	if err != nil {
+		return err
+	}
+	if service.ID == 0 {
+		errors.New("Service Does not Exists")
+	}
+
+	if err := pr.Repo.AddService(user_id, service_id, service.Profession); err != nil {
 		return err
 	}
 
@@ -54,7 +74,7 @@ func (pr *ProfileUsecase) DeleteService(user_id int, service_id int) error {
 	return nil
 }
 
-func (pr*ProfileUsecase) AddPreferredWorkingLocation(id int, district int) error {
+func (pr *ProfileUsecase) AddPreferredWorkingLocation(id int, district int) error {
 	exists, err := pr.Repo.CheckIfDistrictIsAlreadyAdded(id, district)
 	if err != nil {
 		return err
@@ -64,7 +84,12 @@ func (pr*ProfileUsecase) AddPreferredWorkingLocation(id int, district int) error
 		return errors.New("already exists")
 	}
 
-	if err := pr.Repo.AddLocation(id, district); err != nil {
+	dis, err := pr.Repo.GetLocationDetails(district)
+	if err != nil {
+		return err
+	}
+
+	if err := pr.Repo.AddLocation(id, district, dis.District); err != nil {
 		return err
 	}
 
@@ -126,23 +151,31 @@ func (pr ProfileUsecase) GetAllPreferredLocations(id int) ([]models.GetLocations
 	return model, nil
 }
 
-func (pr *ProfileUsecase) GetDetailsOfProviders(id int) (models.ProviderDetailsForUser, error) {
+func (pr *ProfileUsecase) GetDetailsOfProviders(id int) (models.ProviderProfile, error) {
 
-	var model models.ProviderDetailsForUser
 	//find details of providers
 	details, err := pr.Repo.FindProviderDetails(id)
 	if err != nil {
-		return models.ProviderDetailsForUser{}, err
+		return models.ProviderProfile{}, err
 	}
 
-	model.ID = id
-	model.Name = details.Name
-	model.Email = details.Email
-	model.Phone = details.Phone
+	image, err := pr.Repo.GetImageOfProvider(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	service, err := pr.Repo.GetServiceFromSelected(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	// if service.ID == 0 {
+	// 	return models.ProviderProfile{}, errors.New("Service Not Found")
+	// }
 
 	ratings, err := pr.Repo.GetRatingsOfAllRecordsOfAProvider(id)
 	if err != nil {
-		return models.ProviderDetailsForUser{}, err
+		return models.ProviderProfile{}, err
 	}
 
 	var sum int
@@ -158,7 +191,114 @@ func (pr *ProfileUsecase) GetDetailsOfProviders(id int) (models.ProviderDetailsF
 
 	average := sum / length
 
-	model.AverageRating = average
+	district, err := pr.Repo.GetLocationFromSelected(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
 
-	return model, nil
+	var body models.ProviderProfile
+
+	if image == "" {
+		body.Image = "Profile Image Not Uploaded"
+	} else {
+		body.Image = image
+	}
+	body.Name = details.Name
+	body.Email = details.Email
+	body.Phone = details.Phone
+
+	if service.Service == "" {
+		body.Profession = "Service Not Assigned"
+	} else {
+		body.Profession = service.Service
+	}
+
+	if district.District == "" {
+		body.District = "Service Not Assigned"
+
+	} else {
+		body.District = district.District
+
+	}
+
+	body.AverageRating = average
+
+	return body, nil
+}
+
+func (pr *ProfileUsecase) GetProDetails(id int) (models.ProviderProfile, error) {
+	//find details of providers
+	details, err := pr.Repo.FindProviderDetails(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+	if details.ID == 0 {
+		return models.ProviderProfile{}, errors.New("Provider Not Found")
+	}
+
+	image, err := pr.Repo.GetImageOfProvider(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	service, err := pr.Repo.GetServiceFromSelected(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	// if service.ID == 0 {
+	// 	return models.ProviderProfile{}, errors.New("Service Not Found")
+	// }
+
+	ratings, err := pr.Repo.GetRatingsOfAllRecordsOfAProvider(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	var sum int
+	//find average rating of provider
+	for _, v := range ratings {
+		sum = sum + v
+	}
+
+	length := len(ratings)
+	if length == 0 {
+		length = 1
+	}
+
+	average := sum / length
+
+	district, err := pr.Repo.GetLocationFromSelected(id)
+	if err != nil {
+		return models.ProviderProfile{}, err
+	}
+
+	var body models.ProviderProfile
+
+	if image == "" {
+		body.Image = "Profile Image Not Uploaded"
+	} else {
+		body.Image = image
+	}
+	body.Name = details.Name
+	body.Email = details.Email
+	body.Phone = details.Phone
+
+	if service.Service == "" {
+		body.Profession = "Service Not Assigned"
+	} else {
+		body.Profession = service.Service
+	}
+
+	if district.District == "" {
+		body.District = "Service Not Assigned"
+
+	} else {
+		body.District = district.District
+
+	}
+
+	body.AverageRating = average
+
+	return body, nil
 }

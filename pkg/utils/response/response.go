@@ -1,12 +1,17 @@
 package response
 
 type ErrResponse struct {
-	Data  interface{}
+	Response  interface{}
 	Error interface{}
 	StatusCode int
 }
 
 type SuccResponse struct {
-	Data       interface{}
+	Response       interface{}
+	StatusCode int
+}
+
+type LoginRes struct{
+	TokenString interface{}
 	StatusCode int
 }

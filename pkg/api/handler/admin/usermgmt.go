@@ -30,7 +30,7 @@ func (mg *UserMgmtHandler) GetProviders(c *gin.Context) {
 	err3 := errors.Join(err1, err2)
 
 	if err3 != nil {
-		res := response.ErrResponse{Data: "invalid input", Error: err3.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "invalid input", Error: err3.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -44,18 +44,18 @@ func (mg *UserMgmtHandler) GetProviders(c *gin.Context) {
 	//call usecase get array
 	providers, err := mg.usecase.GetProviders(ctx, pagenation)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error()}
+		res := response.ErrResponse{Response: "Error From Get Providers", Error: err.Error()}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	if providers == nil {
-		res := response.ErrResponse{Data: "Go to Previous Page <.......", Error: "Providers Not found ", StatusCode: 200}
+		res := response.ErrResponse{Response: "!!!Page Not Found!!!", Error: "Providers Not found ", StatusCode: 200}
 		c.JSON(http.StatusOK, res)
 		return
 	}
 	//give array
-	successRes := response.SuccResponse{Data: providers, StatusCode: 200}
+	successRes := response.SuccResponse{Response: providers, StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -65,20 +65,20 @@ func (mg *UserMgmtHandler) MakeProvidersVerified(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Error in Query", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	//call usecase get array
 	err = mg.usecase.MakeProviderVerified(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Error From Provider Verification", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "successfully Verified provider", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully Verified provider", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -89,20 +89,20 @@ func (mg *UserMgmtHandler) RevokeVerification(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	//call usecase get array
 	err = mg.usecase.RevokeVerification(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In Provider Varification Revoke", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "revoked verification of provider", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Revoked verification of provider", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -114,7 +114,7 @@ func (mg *UserMgmtHandler) GetUsers(c *gin.Context) {
 	err3 := errors.Join(err1, err2)
 
 	if err3 != nil {
-		res := response.ErrResponse{Data: "invalid input", Error: err3.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "invalid input", Error: err3.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -129,18 +129,18 @@ func (mg *UserMgmtHandler) GetUsers(c *gin.Context) {
 	//call usecase get array
 	users, err := mg.usecase.GetUsers(ctx, pagenation)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error()}
+		res := response.ErrResponse{Response: "Errorin Geting Users", Error: err.Error()}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	if users == nil {
-		res := response.ErrResponse{Data: "Go to Previous Page <.......", Error: "Providers Not found ", StatusCode: 200}
+		res := response.ErrResponse{Response: "!!!Page Not Found!!!", Error: "Providers Not found ", StatusCode: 200}
 		c.JSON(http.StatusOK, res)
 		return
 	}
 	//[]
-	successRes := response.SuccResponse{Data: users, StatusCode: 200}
+	successRes := response.SuccResponse{Response: users, StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -151,20 +151,20 @@ func (mg *UserMgmtHandler) BlockUser(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error()}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error()}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	//call usecase get array
 	err = mg.usecase.BlockUser(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In BlockUser", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "blocked user", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Blocked user", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -175,20 +175,20 @@ func (mg *UserMgmtHandler) UnBlockUser(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error()}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error()}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	//call usecase get array
 	err = mg.usecase.UnBlockUser(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error()}
+		res := response.ErrResponse{Response: "Error From UnblockUser", Error: err.Error()}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "unblocked user", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Unblocked user", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -199,7 +199,7 @@ func (mg *UserMgmtHandler) GetAllPendingVerifications(c *gin.Context) {
 	err3 := errors.Join(err1, err2)
 
 	if err3 != nil {
-		res := response.ErrResponse{Data: "invalid input", Error: err3.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "invalid input", Error: err3.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -214,18 +214,18 @@ func (mg *UserMgmtHandler) GetAllPendingVerifications(c *gin.Context) {
 	//call usecase get array
 	verifications, err := mg.usecase.GetAllPendingVerifications(ctx, pagenation)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Provider Pending Verification", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	if verifications == nil {
-		res := response.ErrResponse{Data: "Go to Previous Page <.......", Error: "Providers Not found ", StatusCode: 200}
+		res := response.ErrResponse{Response: "!!!Page Not Found", Error: "Providers Not found ", StatusCode: 200}
 		c.JSON(http.StatusOK, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: verifications, StatusCode: 200}
+	successRes := response.SuccResponse{Response: verifications, StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }

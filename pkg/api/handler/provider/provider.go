@@ -31,13 +31,13 @@ func (pro *ProviderHandler) Register(c *gin.Context){
 	image,err:=c.FormFile("document")
 
 	if err!=nil{
-		res:=response.ErrResponse{Data: nil,Error: err.Error(),StatusCode: 400}
+		res:=response.ErrResponse{Response: "Error In Submiting Document",Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest,res)
 		return
 	}
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(email) {
-		res := response.ErrResponse{Data: nil, Error: "Invalid email format", StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Email Validation", Error: "Invalid email format", StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -56,30 +56,30 @@ func (pro *ProviderHandler) Register(c *gin.Context){
 	// pass the values to usecase 
 	err=pro.Usecase.Register(model)
 	if err!=nil{
-		res:=response.ErrResponse{Data: nil,Error: err.Error(),StatusCode: 500}
+		res:=response.ErrResponse{Response: "Error In Creating Provider",Error: err.Error(),StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 	//return result
-	res := response.SuccResponse{Data: "Your request will be under inspection of admins", StatusCode: 201}
+	res := response.SuccResponse{Response: "Your request will be under inspection of admins", StatusCode: 201}
 	c.JSON(http.StatusCreated, res)
 }
 
 func (pro *ProviderHandler) Login(c *gin.Context){
 	var Body models.Login
 	if err := c.BindJSON(&Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
 	token,err:=pro.Usecase.Login(Body)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response:"Error From Provider Login", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
-	res := response.SuccResponse{Data: token, StatusCode: 200}
+	res := response.LoginRes{TokenString: token, StatusCode: 200}
 	c.JSON(http.StatusOK, res)
 }

@@ -26,7 +26,7 @@ func NewRegionHandler(usecase interfaces.RegionUsecase) *RegionHandler {
 func (reg *RegionHandler) AddNewState(c *gin.Context) {
 	var Body models.AddNewState
 	if err := c.Bind(&Body); err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -36,12 +36,12 @@ func (reg *RegionHandler) AddNewState(c *gin.Context) {
 
 	err := reg.usecase.AddNewState(ctx, Body.State)
 	if err!=nil{
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In Adding State", Error: err.Error(), StatusCode: 500}
 	c.JSON(http.StatusInternalServerError, res)
 	return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully added new state", StatusCode: 201}
+	successRes := response.SuccResponse{Response: "Successfully added new state", StatusCode: 201}
 	c.JSON(http.StatusCreated, successRes)
 }
 
@@ -53,7 +53,7 @@ func (reg *RegionHandler) GetStates(c *gin.Context){
 	err3 := errors.Join(err1, err2)
 
 	if err3 != nil {
-		res := response.ErrResponse{Data: "invalid input", Error: err3.Error(), StatusCode: 400}
+		res := response.ErrResponse{Response: "invalid input", Error: err3.Error(), StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -68,17 +68,17 @@ func (reg *RegionHandler) GetStates(c *gin.Context){
 
 	Cat, err := reg.usecase.ListStates(ctx, pagenation)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(), StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In List State", Error: err.Error(), StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	if Cat == nil {
-		res := response.ErrResponse{Data: "Go to Previous Page <.......", Error: "State Not found ", StatusCode: 200}
+		res := response.ErrResponse{Response: "!!!Page Not Found!!!", Error: "State Not found ", StatusCode: 200}
 		c.JSON(http.StatusOK, res)
 		return
 	}
-	successRes := response.SuccResponse{Data: Cat, StatusCode: 201}
+	successRes := response.SuccResponse{Response: Cat, StatusCode: 201}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -88,20 +88,20 @@ func (reg *RegionHandler) DeleteState(c *gin.Context){
 
 	id, err := strconv.Atoi(c.Query("state_id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
 	err=reg.usecase.DeleteState(ctx,id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In Delete State", Error: err.Error(),StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "successfully made state inactive",StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully made state inactive",StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -111,7 +111,7 @@ func (reg *RegionHandler) AddNewDistrict(c *gin.Context){
 	var region models.AddNewDistrict
 	err := c.BindJSON(&region)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response: "Binding Error", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -120,12 +120,12 @@ func (reg *RegionHandler) AddNewDistrict(c *gin.Context){
 
 	err = reg.usecase.AddNewDistrict(ctx, region)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In Add State", Error: err.Error(),StatusCode: 500}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	successRes := response.SuccResponse{Data: "successfully added new District", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully added new District", StatusCode: 200}
 	c.JSON(http.StatusCreated, successRes)
 }
 
@@ -135,7 +135,7 @@ func (reg *RegionHandler) GetDistrictsFromState(c *gin.Context){
 
 	id, err := strconv.Atoi(c.Query("state_id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -143,13 +143,13 @@ func (reg *RegionHandler) GetDistrictsFromState(c *gin.Context){
 	//call usecase get array
 	districts, err := reg.usecase.GetDistrictsFromState(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Response: "Error In District From State", Error: err.Error(),StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: districts, StatusCode: 200}
+	successRes := response.SuccResponse{Response: districts, StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }
 
@@ -160,18 +160,18 @@ func (reg *RegionHandler) DeleteDistrictFromState(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("district_id"))
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 400}
+		res := response.ErrResponse{Response: "Error In Query", Error: err.Error(),StatusCode: 400}
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	err = reg.usecase.DeleteDistrictFromState(ctx, id)
 	if err != nil {
-		res := response.ErrResponse{Data: nil, Error: err.Error(),StatusCode: 500}
+		res := response.ErrResponse{Response: "Error in Delete District", Error: err.Error(),StatusCode: 500}
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	//give array
-	successRes := response.SuccResponse{Data: "successfully deleted district", StatusCode: 200}
+	successRes := response.SuccResponse{Response: "Successfully deleted district", StatusCode: 200}
 	c.JSON(http.StatusOK, successRes)
 }

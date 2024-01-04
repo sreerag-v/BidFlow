@@ -19,6 +19,7 @@ func ProviderRoutes(engine *gin.RouterGroup,
 		profile := engine.Group("/profile")
 		{
 			profile.GET("", profileHandler.GetDetailsOfProviders)
+			profile.POST("add-image",profileHandler.AddProfileImage)
 			services := profile.Group("/service")
 			{
 				services.POST("/add-service", profileHandler.AddService)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/sreerag_v/BidFlow/pkg/domain"
+	sent "github.com/sreerag_v/BidFlow/pkg/notification/sender"
 	"github.com/sreerag_v/BidFlow/pkg/repository/provider/interfaces"
 	services "github.com/sreerag_v/BidFlow/pkg/usecase/provider/interfaces"
 	"github.com/sreerag_v/BidFlow/pkg/utils/models"
@@ -98,8 +99,8 @@ func (w *ProWorkUsecase) GetAllLeads(pro_id int, page models.PageNation) ([]mode
 	return model, nil
 }
 
-func (w *ProWorkUsecase) ViewLeads(work_id int,page models.PageNation) (models.WorkDetails, error) {
-	details, err := w.Repo.GetDetailsOfAWork(work_id,page)
+func (w *ProWorkUsecase) ViewLeads(work_id int, page models.PageNation) (models.WorkDetails, error) {
+	details, err := w.Repo.GetDetailsOfAWork(work_id, page)
 	if err != nil {
 		return models.WorkDetails{}, err
 	}
@@ -123,18 +124,69 @@ func (w *ProWorkUsecase) ViewLeads(work_id int,page models.PageNation) (models.W
 }
 
 func (w *ProWorkUsecase) PlaceBid(model models.PlaceBid) error {
-	err := w.Repo.PlaceBid(model)
+	exist, err := w.Repo.FindWorkExistOrNot(model.WorkID)
 	if err != nil {
 		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("Work Not Found For Bidding")
+	}
+	checkbid, err := w.Repo.CheckBidExistOrNot(model.WorkID)
+	if err != nil {
+		return err
+	}
+
+	if checkbid.ID != 0 {
+		return errors.New("Bid Already Palced On This Work")
+	}
+
+	if checkbid.IsDeleted {
+		return errors.New("Bid Already Enrolled")
+	}
+
+	err = w.Repo.PlaceBid(model, exist.UserID)
+	if err != nil {
+		return err
+	} else {
+		user, err := w.Repo.FindUserByUid(exist.UserID)
+		if err != nil {
+			return err
+		}
+		// pass those into the Sender()
+		sent.Sent(user.Email, user.Name)
 	}
 
 	return nil
 }
 
 func (w *ProWorkUsecase) ReplaceBidWithNewBid(model models.PlaceBid) error {
-	err := w.Repo.ReplaceBidWithNewBid(model)
+	exist, err := w.Repo.FindWorkExistOrNot(model.WorkID)
 	if err != nil {
 		return err
+	}
+
+	if exist.ID == 0 {
+		return errors.New("Work Not Found For Replace Bid")
+	}
+	checkbid, err := w.Repo.CheckBidExistOrNot(model.WorkID)
+	if err != nil {
+		return err
+	}
+	if checkbid.IsDeleted {
+		return errors.New("Bid Already Enrolled")
+	}
+
+	err = w.Repo.ReplaceBidWithNewBid(model, exist.UserID)
+	if err != nil {
+		return err
+	} else {
+		user, err := w.Repo.FindUserByUid(exist.UserID)
+		if err != nil {
+			return err
+		}
+		// pass those into the Sender()
+		sent.Sent(user.Email, user.Name)
 	}
 
 	return nil
@@ -149,7 +201,7 @@ func (w *ProWorkUsecase) GetAllOtherBidsOnTheLeads(work_id int) ([]models.BidDet
 	return bids, nil
 }
 
-func (w *ProWorkUsecase) GetWorksOfAProvider(pro_id int,page models.PageNation) ([]models.WorkDetails, error) {
+func (w *ProWorkUsecase) GetWorksOfAProvider(pro_id int, page models.PageNation) ([]models.WorkDetails, error) {
 
 	provider, err := w.Repo.FindProviderName(pro_id)
 	if err != nil {
@@ -164,7 +216,7 @@ func (w *ProWorkUsecase) GetWorksOfAProvider(pro_id int,page models.PageNation) 
 	var model []models.WorkDetails
 
 	for _, v := range works {
-		details, err := w.Repo.GetDetailsOfAWork(v,page)
+		details, err := w.Repo.GetDetailsOfAWork(v, page)
 		if err != nil {
 			return []models.WorkDetails{}, err
 		}
@@ -192,7 +244,7 @@ func (w *ProWorkUsecase) GetWorksOfAProvider(pro_id int,page models.PageNation) 
 	return model, nil
 }
 
-func (w *ProWorkUsecase) GetAllOnGoingWorks(pro_id int,page models.PageNation) ([]models.WorkDetails, error) {
+func (w *ProWorkUsecase) GetAllOnGoingWorks(pro_id int, page models.PageNation) ([]models.WorkDetails, error) {
 
 	provider, err := w.Repo.FindProviderName(pro_id)
 	if err != nil {
@@ -207,7 +259,7 @@ func (w *ProWorkUsecase) GetAllOnGoingWorks(pro_id int,page models.PageNation) (
 	var model []models.WorkDetails
 
 	for _, v := range works {
-		details, err := w.Repo.GetDetailsOfAWork(v,page)
+		details, err := w.Repo.GetDetailsOfAWork(v, page)
 		if err != nil {
 			return []models.WorkDetails{}, err
 		}
@@ -235,7 +287,7 @@ func (w *ProWorkUsecase) GetAllOnGoingWorks(pro_id int,page models.PageNation) (
 	return model, nil
 }
 
-func (w *ProWorkUsecase) GetCompletedWorks(pro_id int,page models.PageNation) ([]models.WorkDetails, error) {
+func (w *ProWorkUsecase) GetCompletedWorks(pro_id int, page models.PageNation) ([]models.WorkDetails, error) {
 
 	provider, err := w.Repo.FindProviderName(pro_id)
 	if err != nil {
@@ -250,7 +302,7 @@ func (w *ProWorkUsecase) GetCompletedWorks(pro_id int,page models.PageNation) ([
 	var model []models.WorkDetails
 
 	for _, v := range works {
-		details, err := w.Repo.GetDetailsOfAWork(v,page)
+		details, err := w.Repo.GetDetailsOfAWork(v, page)
 		if err != nil {
 			return []models.WorkDetails{}, err
 		}
@@ -278,21 +330,21 @@ func (w *ProWorkUsecase) GetCompletedWorks(pro_id int,page models.PageNation) ([
 	return model, nil
 }
 
-func (w *ProWorkUsecase) GetAllAcceptedBids(pro_id int,page models.PageNation)([]domain.Bid,error){
-	exist,err:=w.ProfileRepo.FindProviderDetails(pro_id)
+func (w *ProWorkUsecase) GetAllAcceptedBids(pro_id int, page models.PageNation) ([]domain.AcceptedBidRes, error) {
+	exist, err := w.ProfileRepo.FindProviderDetails(pro_id)
 
-	if err!=nil{
-		return []domain.Bid{},err
+	if err != nil {
+		return []domain.AcceptedBidRes{}, err
 	}
 
-	if exist.ID==0{
-		return []domain.Bid{},errors.New("Provider Does Not Exists")
+	if exist.ID == 0 {
+		return []domain.AcceptedBidRes{}, errors.New("Provider Does Not Exists")
 	}
 
-	bids,err:=w.Repo.GetAllAcceptedBids(pro_id,page)
-	if err!=nil{
-		return []domain.Bid{},err
+	bids, err := w.Repo.GetAllAcceptedBids(pro_id, page)
+	if err != nil {
+		return []domain.AcceptedBidRes{}, err
 	}
 
-	return bids,nil
+	return bids, nil
 }
