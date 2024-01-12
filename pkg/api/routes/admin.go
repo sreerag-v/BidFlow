@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	ws "github.com/sreerag_v/BidFlow/pkg/api/chat"
 	adminHandler "github.com/sreerag_v/BidFlow/pkg/api/handler/admin"
-	"github.com/sreerag_v/BidFlow/pkg/api/middleware"
+	// "github.com/sreerag_v/BidFlow/pkg/api/middleware"
 )
 
 func AdminRoutes(engine *gin.RouterGroup,
@@ -19,7 +19,7 @@ func AdminRoutes(engine *gin.RouterGroup,
 	engine.POST("/login", adminHandler.AdminLogin)
 	engine.DELETE("/delete", adminHandler.DeleteAdmin)
 
-	engine.Use(middleware.AdminAuthMiddleware)
+	// engine.Use(middleware.AdminAuthMiddleware)
 	{
 		category := engine.Group("category")
 		{
